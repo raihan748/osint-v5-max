@@ -1179,7 +1179,7 @@ async function lookupIP(custom){
 
 async function myIP(){
   try{const r=await fetch('https://api.ipify.org?format=json');const d=await r.json();$('ipIn').value=d.ip;lookupIP(d.ip);}
-  catch(){sm('Error','Gagal ambil IP kamu.')}
+  catch(e){sm('Error','Gagal ambil IP kamu.')}
 }
 
 /* ══════════════════════════════════════
