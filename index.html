@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSINT Recon Suite v4.0 MAX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.10.51/bundle/libphonenumber-min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exifreader@4.14.1/dist/exif-reader.min.js"></script>
+<style>
+:root{
+  --bg:#060a12;--bg1:#0c1220;--bg2:#101828;--bd:#1c2d44;--bdh:#00d4ff55;
+  --cy:#00d4ff;--bl:#3b82f6;--pu:#a855f7;--gn:#10b981;--rd:#ef4444;
+  --or:#f97316;--ye:#eab308;--pk:#ec4899;
+  --t1:#f1f5f9;--t2:#94a3b8;--t3:#475569;
+  --r:12px;--rs:8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(rgba(0,212,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.022) 1px,transparent 1px);background-size:44px 44px}
+.bg-g1{position:fixed;top:-300px;left:50%;transform:translateX(-50%);width:900px;height:500px;background:radial-gradient(ellipse,rgba(0,212,255,.06) 0%,transparent 70%);pointer-events:none;z-index:0}
+.bg-g2{position:fixed;bottom:-200px;right:-100px;width:600px;height:400px;background:radial-gradient(ellipse,rgba(168,85,247,.04) 0%,transparent 70%);pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1160px;margin:0 auto;padding:0 18px 70px}
+
+/* HEADER */
+header{text-align:center;padding:44px 0 28px}
+.badge-live{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,rgba(0,212,255,.12),rgba(59,130,246,.12));border:1px solid rgba(0,212,255,.3);border-radius:50px;padding:5px 16px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cy);margin-bottom:16px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--cy);animation:pls 1.6s infinite}
+@keyframes pls{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+h1{font-size:clamp(24px,5vw,48px);font-weight:800;line-height:1.15;margin-bottom:10px;background:linear-gradient(135deg,#00d4ff 0%,#3b82f6 45%,#a855f7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub{color:var(--t2);font-size:13px;max-width:580px;margin:0 auto;line-height:1.6}
+
+/* TABS */
+.tabs-bar{display:flex;gap:5px;flex-wrap:wrap;background:var(--bg1);border:1px solid var(--bd);border-radius:var(--r);padding:5px;margin-bottom:18px}
+.tb{flex:1;min-width:90px;background:transparent;border:1px solid transparent;border-radius:var(--rs);color:var(--t2);cursor:pointer;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;padding:8px 10px;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;white-space:nowrap}
+.tb:hover{color:var(--t1);border-color:var(--bdh)}
+.tb.active{background:linear-gradient(135deg,rgba(0,212,255,.15),rgba(59,130,246,.15));border-color:var(--cy);color:var(--cy)}
+.ti{font-size:14px}
+
+/* HISTORY BAR */
+.history-bar{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);padding:10px 14px;margin-bottom:14px;display:none;align-items:center;gap:10px;flex-wrap:wrap}
+.history-bar.show{display:flex}
+.hist-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;flex-shrink:0}
+.hist-pill{background:var(--bg);border:1px solid var(--bd);border-radius:50px;padding:3px 11px;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .18s;color:var(--t2)}
+.hist-pill:hover{border-color:var(--cy);color:var(--cy)}
+
+/* PANELS */
+.panel{display:none}
+.panel.active{display:block;animation:fu .3s ease}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* INPUT CARD */
+.icard{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--r);padding:22px;margin-bottom:18px;position:relative;overflow:hidden}
+.icard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ag,linear-gradient(90deg,var(--cy),var(--bl)))}
+.ilabel{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:11px}
+.irow{display:flex;gap:9px;flex-wrap:wrap}
+.iw{flex:1;min-width:200px;position:relative}
+.iw svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--t3);pointer-events:none}
+input[type=text],input[type=email],input[type=tel],input[type=password],select,textarea{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:var(--rs);color:var(--t1);font-family:'JetBrains Mono',monospace;font-size:13px;padding:10px 13px 10px 38px;outline:none;transition:all .2s}
+select,textarea{padding-left:13px;cursor:pointer}
+textarea{resize:vertical;min-height:80px;font-size:12px}
+input:focus,select:focus,textarea:focus{border-color:var(--cy);box-shadow:0 0 0 3px rgba(0,212,255,.1)}
+input::placeholder,textarea::placeholder{color:var(--t3)}
+.btn{background:linear-gradient(135deg,var(--cy),var(--bl));border:none;border-radius:var(--rs);color:#000;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;padding:10px 22px;display:flex;align-items:center;gap:6px;transition:all .22s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(0,212,255,.28)}
+.btn:active{transform:translateY(0)}
+.btn svg{width:14px;height:14px}
+.btn-var{background:linear-gradient(135deg,var(--pu),var(--bl));flex:0}
+.btn-sm{background:transparent;border:1px solid var(--bd);border-radius:6px;color:var(--t2);cursor:pointer;font-size:10px;font-family:'Inter',sans-serif;padding:4px 10px;transition:all .18s}
+.btn-sm:hover{border-color:var(--cy);color:var(--cy)}
+
+/* CHIPS */
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.chip{background:var(--bg1);border:1px solid var(--bd);border-radius:6px;padding:5px 11px;font-size:11px;font-family:'JetBrains Mono',monospace}
+.chip .k{color:var(--t3)}.chip .v{color:var(--cy)}
+
+/* PROFILE CARD */
+.pf-card{background:var(--bg1);border:1px solid var(--cy);border-radius:var(--r);padding:18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:14px;box-shadow:0 0 20px rgba(0,212,255,.09);animation:fu .4s ease}
+.pf-card img{width:66px;height:66px;border-radius:50%;border:3px solid var(--cy);object-fit:cover}
+.pf-name{font-size:17px;font-weight:700}
+.pf-desc{font-size:12px;color:var(--t2);margin-top:3px}
+.pf-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.badge{font-size:10px;font-weight:700;padding:2px 9px;border-radius:50px;border:1px solid}
+.bg{background:rgba(16,185,129,.12);color:var(--gn);border-color:rgba(16,185,129,.3)}
+.bb{background:rgba(59,130,246,.12);color:var(--bl);border-color:rgba(59,130,246,.3)}
+.bc{background:rgba(0,212,255,.12);color:var(--cy);border-color:rgba(0,212,255,.3)}
+.bp{background:rgba(168,85,247,.12);color:var(--pu);border-color:rgba(168,85,247,.3)}
+.br{background:rgba(239,68,68,.12);color:var(--rd);border-color:rgba(239,68,68,.3)}
+.by{background:rgba(234,179,8,.12);color:var(--ye);border-color:rgba(234,179,8,.3)}
+.bo{background:rgba(249,115,22,.12);color:var(--or);border-color:rgba(249,115,22,.3)}
+
+/* RISK SCORE */
+.risk-meter{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.risk-title{font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.risk-bar-bg{height:10px;background:var(--bd);border-radius:5px;overflow:hidden;margin-bottom:8px}
+.risk-bar-fill{height:100%;border-radius:5px;transition:width 1s ease}
+.risk-info{display:flex;justify-content:space-between;font-size:12px}
+.risk-score-num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:22px}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px;margin-bottom:16px}
+.stat{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);padding:11px;text-align:center}
+.stat .n{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.stat .l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.n-c{color:var(--cy)}.n-g{color:var(--gn)}.n-r{color:var(--rd)}.n-y{color:var(--ye)}
+
+/* PROGRESS */
+.prog{margin-bottom:14px}
+.prog-hd{display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-bottom:6px}
+.prog-bg{height:3px;background:var(--bd);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--cy),var(--bl));border-radius:2px;transition:width .3s;width:0}
+
+/* LOG */
+.log{background:var(--bg);border:1px solid var(--bd);border-radius:var(--rs);padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;max-height:130px;overflow-y:auto;margin-bottom:16px}
+.log::-webkit-scrollbar{width:3px}
+.log::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+.ll{color:var(--t3);margin-bottom:2px}
+.ll.ok{color:var(--gn)}.ll.er{color:var(--rd)}.ll.in{color:var(--cy)}.ll.wa{color:var(--ye)}
+
+/* SECTION HEADER */
+.shd{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid var(--bd)}
+.shd-l{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1.5px}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--cy)}
+.shd-r{display:flex;gap:7px}
+
+/* PLATFORM CARDS */
+.cat{margin-bottom:20px}
+.cat-lbl{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.pcard{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;color:var(--t1)}
+.pcard:hover{border-color:var(--bdh);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,212,255,.07)}
+.pcard.found{border-color:rgba(16,185,129,.4);background:linear-gradient(135deg,rgba(16,185,129,.06),var(--bg1))}
+.pcard.found::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gn)}
+.pcard.nf{opacity:.4}
+.pcard.open{border-color:rgba(59,130,246,.2)}
+.picon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.pname{font-size:12px;font-weight:600}
+.purl{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:120px}
+.pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-left:auto}
+.sd-c{background:var(--cy);animation:pls 1s infinite}
+.sd-g{background:var(--gn)}.sd-r{background:var(--t3)}.sd-y{background:var(--ye)}.sd-b{background:var(--bl)}
+
+/* PHONE CARDS */
+.phone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:14px}
+.ph-card{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);padding:13px;cursor:pointer;transition:all .18s}
+.ph-card:hover{transform:translateY(-1px);border-color:var(--bdh)}
+.ph-card a{text-decoration:none;color:inherit;display:flex;align-items:center;gap:11px}
+.ph-ic{font-size:26px}
+.ph-name{font-size:12px;font-weight:700}
+.ph-desc{font-size:10px;color:var(--t2);margin-top:2px}
+
+/* IP FIELDS */
+.ip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.ip-f{background:var(--bg);border:1px solid var(--bd);border-radius:var(--rs);padding:11px}
+.ip-k{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.ip-v{font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace}
+
+/* DNS RECORDS */
+.dns-section{margin-top:16px}
+.dns-type{margin-bottom:12px}
+.dns-type-label{font-size:10px;font-weight:700;color:var(--cy);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.dns-record{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t1);margin-bottom:4px;word-break:break-all}
+
+/* BREACH CARDS */
+.breach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:14px}
+.breach-card{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);padding:14px;transition:all .18s}
+.breach-card.danger{border-color:rgba(239,68,68,.4);background:linear-gradient(135deg,rgba(239,68,68,.05),var(--bg1))}
+.breach-card.warn{border-color:rgba(234,179,8,.4);background:linear-gradient(135deg,rgba(234,179,8,.05),var(--bg1))}
+.breach-card.safe{border-color:rgba(16,185,129,.4);background:linear-gradient(135deg,rgba(16,185,129,.05),var(--bg1))}
+.bc-head{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.bc-icon{font-size:24px}
+.bc-name{font-size:13px;font-weight:700}
+.bc-sub{font-size:10px;color:var(--t2);margin-top:2px}
+.bc-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+
+/* HASH TOOLS */
+.hash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px;margin-top:14px}
+.hash-result{background:var(--bg);border:1px solid var(--bd);border-radius:var(--rs);padding:12px}
+.hash-type{font-size:10px;color:var(--cy);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.hash-val{font-family:'JetBrains Mono',monospace;font-size:11px;word-break:break-all;color:var(--t1);cursor:pointer}
+.hash-val:hover{color:var(--cy)}
+
+/* NAME GRID */
+.name-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:14px}
+.n-card{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);padding:13px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:all .18s;text-decoration:none;color:var(--t1)}
+.n-card:hover{border-color:var(--bdh);transform:translateY(-1px)}
+.n-ic{font-size:22px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:8px;flex-shrink:0}
+.n-title{font-size:12px;font-weight:700}
+.n-sub{font-size:10px;color:var(--t2);margin-top:2px}
+
+/* IMAGE */
+.drop-area{border:2px dashed var(--bd);border-radius:var(--r);padding:36px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px}
+.drop-area:hover,.drop-area.dv{border-color:var(--cy);background:rgba(0,212,255,.03)}
+.drop-icon{font-size:38px;margin-bottom:10px}
+.drop-text{color:var(--t2);font-size:13px}
+.drop-sub{color:var(--t3);font-size:11px;margin-top:5px}
+#imgPreview{max-width:180px;max-height:180px;border-radius:var(--rs);border:1px solid var(--bd);margin:14px auto;display:none}
+.exif-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:9px;margin-top:14px}
+.exif-f{background:var(--bg);border:1px solid var(--bd);border-radius:var(--rs);padding:10px}
+.exif-k{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.exif-v{font-size:12px;font-family:'JetBrains Mono',monospace;word-break:break-all}
+.img-engines{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-top:14px}
+.img-eng{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .18s;text-decoration:none;color:var(--t1)}
+.img-eng:hover{border-color:var(--bdh);transform:translateY(-1px)}
+.ie-ic{font-size:20px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
+.ie-name{font-size:12px;font-weight:700}
+.ie-sub{font-size:10px;color:var(--t2);margin-top:2px}
+
+/* DOMAIN */
+.domain-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:14px}
+.dl{background:var(--bg);border:1px solid var(--bd);border-radius:var(--rs);padding:11px 13px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .18s;text-decoration:none;color:var(--t1)}
+.dl:hover{border-color:var(--bdh)}
+.dl-ic{font-size:17px}
+.dl-name{font-size:12px;font-weight:600}
+.dl-sub{font-size:10px;color:var(--t2);margin-top:2px}
+
+/* PERM PILLS */
+.perm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:7px;margin-top:12px}
+.perm-pill{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:6px 11px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .18s;display:flex;justify-content:space-between;align-items:center}
+.perm-pill:hover{border-color:var(--cy);color:var(--cy)}
+.perm-pill .pp-use{font-size:9px;color:var(--t3)}
+
+/* MAP */
+.map-wrap{border-radius:var(--rs);overflow:hidden;border:1px solid var(--bd);margin-top:14px}
+.map-wrap iframe{width:100%;height:240px;border:none}
+
+/* MISC */
+.tip{background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2);border-radius:var(--rs);padding:9px 13px;font-size:12px;color:var(--ye);margin-bottom:14px}
+.tip a{color:var(--cy)}
+.ok-box{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:var(--rs);padding:9px 13px;font-size:12px;color:var(--gn);margin-bottom:14px}
+.err-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--rs);padding:9px 13px;font-size:12px;color:var(--rd);margin-bottom:14px}
+.sep{border:none;border-top:1px solid var(--bd);margin:18px 0}
+.copy-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--gn);color:#000;padding:8px 20px;border-radius:50px;font-size:12px;font-weight:700;z-index:200;opacity:0;transition:opacity .3s}
+.copy-toast.show{opacity:1}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--r);padding:22px;max-width:460px;width:90%;animation:fu .3s ease}
+.modal h3{margin-bottom:9px;font-size:16px}
+.modal p{color:var(--t2);font-size:13px;line-height:1.6}
+.modal-foot{display:flex;justify-content:flex-end;margin-top:14px}
+.btn-close{background:var(--bd);border:none;border-radius:6px;color:var(--t1);cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;padding:6px 16px}
+
+/* EXPORT BAR */
+.export-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--bd)}
+
+footer{text-align:center;padding:28px 0;color:var(--t3);font-size:11px}
+footer span{color:var(--cy)}
+
+@media(max-width:600px){
+  .irow{flex-direction:column}
+  .card-grid,.phone-grid,.breach-grid,.name-grid,.img-engines,.domain-links{grid-template-columns:1fr 1fr}
+  .tb span{display:none}
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div><div class="bg-g1"></div><div class="bg-g2"></div>
+<div class="wrap">
+
+<!-- HEADER -->
+<header>
+  <div class="badge-live"><div class="live-dot"></div>OSINT Suite v4.0 MAX — 9 Jalur Investigasi</div>
+  <h1>Social Intelligence Hunter</h1>
+  <p class="sub">Telusuri jejak digital dari <strong>email, nomor HP, username, nama, IP, gambar, domain, breach data, & hash</strong> — semua dalam satu tool.</p>
+</header>
+
+<!-- HISTORY -->
+<div class="history-bar" id="histBar">
+  <span class="hist-label">⏱ Terakhir:</span>
+  <div id="histPills"></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <button class="tb active" onclick="sw('email',this)"><span class="ti">📧</span><span>Email</span></button>
+  <button class="tb" onclick="sw('phone',this)"><span class="ti">📱</span><span>HP</span></button>
+  <button class="tb" onclick="sw('username',this)"><span class="ti">👤</span><span>Username</span></button>
+  <button class="tb" onclick="sw('name',this)"><span class="ti">🔎</span><span>Nama</span></button>
+  <button class="tb" onclick="sw('ip',this)"><span class="ti">🌐</span><span>IP/Domain</span></button>
+  <button class="tb" onclick="sw('image',this)"><span class="ti">🖼️</span><span>Gambar</span></button>
+  <button class="tb" onclick="sw('domain',this)"><span class="ti">🔗</span><span>Domain</span></button>
+  <button class="tb" onclick="sw('breach',this)"><span class="ti">🔐</span><span>Breach</span></button>
+  <button class="tb" onclick="sw('hash',this)"><span class="ti">#️⃣</span><span>Hash</span></button>
+</div>
+
+<!-- ══ EMAIL ══ -->
+<div id="p-email" class="panel active">
+  <div class="icard" style="--ag:linear-gradient(90deg,#00d4ff,#3b82f6)">
+    <div class="ilabel">🎯 Email Target</div>
+    <div class="irow">
+      <div class="iw">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.19V181.81Z"/></svg>
+        <input type="email" id="emailIn" placeholder="target@gmail.com" onkeydown="if(e(event))scanEmail()">
+      </div>
+      <div class="iw" style="flex:0 0 170px;min-width:140px">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M229.66,218.34l-50.07-50.07a88.21,88.21,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.31ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
+        <input type="text" id="emailUO" placeholder="Override username" onkeydown="if(e(event))scanEmail()">
+      </div>
+      <button class="btn" onclick="scanEmail()">⚡ Scan LITE</button>
+      <button class="btn btn-var" onclick="deepScanEmail()" title="Butuh Vercel Python Backend">🚀 DEEP SCAN</button>
+    </div>
+  </div>
+  <div id="r-email"></div>
+</div>
+
+<!-- ══ PHONE ══ -->
+<div id="p-phone" class="panel">
+  <div class="icard" style="--ag:linear-gradient(90deg,#10b981,#3b82f6)">
+    <div class="ilabel">📱 Nomor HP Target</div>
+    <div class="tip">💡 Pilih kode negara, lalu isi nomor tanpa kode. Contoh: <strong>081234567890</strong></div>
+    <div class="irow">
+      <div class="iw" style="flex:0 0 120px;min-width:100px">
+        <select id="cc" style="padding-left:10px">
+          <option value="+62">🇮🇩 +62</option><option value="+1">🇺🇸 +1</option><option value="+44">🇬🇧 +44</option>
+          <option value="+60">🇲🇾 +60</option><option value="+65">🇸🇬 +65</option><option value="+61">🇦🇺 +61</option>
+          <option value="+81">🇯🇵 +81</option><option value="+82">🇰🇷 +82</option><option value="+86">🇨🇳 +86</option>
+          <option value="+91">🇮🇳 +91</option><option value="+55">🇧🇷 +55</option><option value="+49">🇩🇪 +49</option>
+          <option value="+84">🇻🇳 +84</option><option value="+66">🇹🇭 +66</option><option value="+63">🇵🇭 +63</option>
+        </select>
+      </div>
+      <div class="iw">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M222.37,158.46l-47.11-21.11a16,16,0,0,0-15.17,1.4,8.12,8.12,0,0,0-.75.56L134.87,160c-15.42-7.49-31.34-23.29-38.83-38.51l20.78-24.71a16,16,0,0,0,1.32-15.06L97.54,33.64a16,16,0,0,0-16.62-9.52A56.26,56.26,0,0,0,32,80c0,79.4,64.6,144,144,144a56.26,56.26,0,0,0,55.88-48.92A16,16,0,0,0,222.37,158.46Z"/></svg>
+        <input type="tel" id="phoneIn" placeholder="81234567890" onkeydown="if(e(event))scanPhone()">
+      </div>
+      <button class="btn" onclick="scanPhone()">⚡ Lookup</button>
+    </div>
+  </div>
+  <div id="r-phone"></div>
+</div>
+
+<!-- ══ USERNAME ══ -->
+<div id="p-username" class="panel">
+  <div class="icard" style="--ag:linear-gradient(90deg,#a855f7,#3b82f6)">
+    <div class="ilabel">👤 Username Target</div>
+    <div class="irow">
+      <div class="iw">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M229.66,218.34l-50.07-50.07a88.21,88.21,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.31ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
+        <input type="text" id="unIn" placeholder="username_target" onkeydown="if(e(event))scanUsername()">
+      </div>
+      <button class="btn" onclick="scanUsername()">⚡ Scan LITE</button>
+      <button class="btn btn-var" onclick="deepScanUsername()" title="Butuh Vercel Python Backend">🚀 DEEP SCAN</button>
+      <button class="btn btn-sm" onclick="genPerms()" style="flex:0">🔀 Variasi</button>
+    </div>
+  </div>
+  <div id="r-username"></div>
+</div>
+
+<!-- ══ NAME ══ -->
+<div id="p-name" class="panel">
+  <div class="icard" style="--ag:linear-gradient(90deg,#f97316,#ec4899)">
+    <div class="ilabel">🔎 Cari Orang Berdasarkan Nama</div>
+    <div class="irow">
+      <div class="iw">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M229.66,218.34l-50.07-50.07a88.21,88.21,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.31ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
+        <input type="text" id="nameIn" placeholder="Budi Santoso / John Doe" onkeydown="if(e(event))scanName()">
+      </div>
+      <div class="iw" style="flex:0 0 170px;min-width:140px">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M128,16a112,112,0,1,0,112,112A112.12,112.12,0,0,0,128,16Zm0,208a96,96,0,1,1,96-96A96.11,96.11,0,0,1,128,224Z"/></svg>
+        <input type="text" id="nameLocIn" placeholder="Kota/Lokasi (opt)" onkeydown="if(e(event))scanName()">
+      </div>
+      <button class="btn" onclick="scanName()">⚡ Cari</button>
+    </div>
+  </div>
+  <div id="r-name"></div>
+</div>
+
+<!-- ══ IP ══ -->
+<div id="p-ip" class="panel">
+  <div class="icard" style="--ag:linear-gradient(90deg,#eab308,#f97316)">
+    <div class="ilabel">🌐 IP Address Lookup</div>
+    <div class="irow">
+      <div class="iw">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M128,16a112,112,0,1,0,112,112A112.12,112.12,0,0,0,128,16Zm87.63,96H175.8c-1.56-28.46-10.42-55.63-25.12-76.49A96.12,96.12,0,0,1,215.63,112ZM128,215.89C111.4,196.41,100.29,171.83,97.2,144h61.6C155.71,171.83,144.6,196.41,128,215.89ZM97.2,112c3.09-27.83,14.2-52.41,30.8-71.89C144.6,59.59,155.71,84.17,158.8,112ZM105.32,35.51C90.62,56.37,81.76,83.54,80.2,112H40.37A96.12,96.12,0,0,1,105.32,35.51ZM40.37,128H80.2c1.56,28.46,10.42,55.63,25.12,76.49A96.12,96.12,0,0,1,40.37,128Zm110.31,76.49c14.7-20.86,23.56-48,25.12-76.49h39.83A96.12,96.12,0,0,1,150.68,204.49Z"/></svg>
+        <input type="text" id="ipIn" placeholder="8.8.8.8 atau domain.com" onkeydown="if(e(event))lookupIP()">
+      </div>
+      <button class="btn" onclick="lookupIP()">⚡ Lookup</button>
+      <button class="btn" style="background:linear-gradient(135deg,#a855f7,#3b82f6);flex:0" onclick="myIP()">My IP</button>
+    </div>
+  </div>
+  <div id="r-ip"></div>
+</div>
+
+<!-- ══ IMAGE ══ -->
+<div id="p-image" class="panel">
+  <div class="icard" style="--ag:linear-gradient(90deg,#ec4899,#a855f7)">
+    <div class="ilabel">🖼️ Reverse Image + EXIF Extractor</div>
+    <div class="drop-area" id="dropZ" onclick="document.getElementById('imgFile').click()" ondragover="dov(event)" ondragleave="dlv()" ondrop="ddf(event)">
+      <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="handleImg(event)">
+      <div class="drop-icon">📸</div>
+      <div class="drop-text">Drop foto atau klik untuk pilih</div>
+      <div class="drop-sub">EXIF metadata (GPS, kamera, timestamp) akan otomatis diekstrak</div>
+    </div>
+    <div class="irow">
+      <div class="iw">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M137.54,186.36a8,8,0,0,1,0,11.31l-9.94,10A56,56,0,0,1,48.22,128.4L72.9,104.28A56,56,0,0,1,149,103a8,8,0,1,1-10.64,12A40,40,0,0,0,83.6,116.08L58.92,140.2a40,40,0,0,0,56.47,56.47l9.94-9.94A8,8,0,0,1,137.54,186.36Zm70.08-138a56.08,56.08,0,0,0-79.22,0l-9.94,9.95a8,8,0,0,0,11.32,11.31l9.94-9.94a40,40,0,0,1,56.46,56.46L171.5,140.22A40,40,0,0,1,117,139a8,8,0,1,0-10.64,12,56,56,0,0,0,76.14,1.49l24.68-24.12A56.08,56.08,0,0,0,207.62,48.38Z"/></svg>
+        <input type="text" id="imgUrl" placeholder="https://example.com/foto.jpg" onkeydown="if(e(event))searchImg()">
+      </div>
+      <button class="btn" onclick="searchImg()">⚡ Search</button>
+    </div>
+    <img id="imgPreview">
+  </div>
+  <div id="r-image"></div>
+</div>
+
+<!-- ══ DOMAIN ══ -->
+<div id="p-domain" class="panel">
+  <div class="icard" style="--ag:linear-gradient(90deg,#10b981,#00d4ff)">
+    <div class="ilabel">🔗 Domain Intelligence + DNS Lookup</div>
+    <div class="irow">
+      <div class="iw">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M128,16a112,112,0,1,0,112,112A112.12,112.12,0,0,0,128,16Zm87.63,96H175.8c-1.56-28.46-10.42-55.63-25.12-76.49A96.12,96.12,0,0,1,215.63,112ZM128,215.89C111.4,196.41,100.29,171.83,97.2,144h61.6C155.71,171.83,144.6,196.41,128,215.89ZM97.2,112c3.09-27.83,14.2-52.41,30.8-71.89C144.6,59.59,155.71,84.17,158.8,112ZM105.32,35.51C90.62,56.37,81.76,83.54,80.2,112H40.37A96.12,96.12,0,0,1,105.32,35.51ZM40.37,128H80.2c1.56,28.46,10.42,55.63,25.12,76.49A96.12,96.12,0,0,1,40.37,128Zm110.31,76.49c14.7-20.86,23.56-48,25.12-76.49h39.83A96.12,96.12,0,0,1,150.68,204.49Z"/></svg>
+        <input type="text" id="domIn" placeholder="contoh.com" onkeydown="if(e(event))scanDomain()">
+      </div>
+      <button class="btn" onclick="scanDomain()">⚡ Analyse</button>
+    </div>
+  </div>
+  <div id="r-domain"></div>
+</div>
+
+<!-- ══ BREACH ══ -->
+<div id="p-breach" class="panel">
+  <div class="icard" style="--ag:linear-gradient(90deg,#ef4444,#a855f7)">
+    <div class="ilabel">🔐 Data Breach & Password Checker</div>
+    <div class="irow">
+      <div class="iw">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.19V181.81Z"/></svg>
+        <input type="email" id="breachEmail" placeholder="email@target.com" onkeydown="if(e(event))checkBreach()">
+      </div>
+      <button class="btn" onclick="checkBreach()">⚡ Check Email</button>
+    </div>
+    <div class="sep"></div>
+    <div class="ilabel" style="margin-bottom:8px">🔑 Password Breach Check (aman — pakai k-anonymity)</div>
+    <div class="irow">
+      <div class="iw">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M243.07,92.76A16,16,0,0,0,229.09,80H216V72a88,88,0,0,0-176,0v8H26.91A16,16,0,0,0,11,92.76l-8,96A16,16,0,0,0,18.9,208H237.1A16,16,0,0,0,251,188.76ZM56,72a72,72,0,0,1,144,0v8H56Z"/></svg>
+        <input type="password" id="pwdIn" placeholder="Masukkan password (tidak disimpan, tidak dikirim)" onkeydown="if(e(event))checkPassword()">
+      </div>
+      <button class="btn" style="background:linear-gradient(135deg,#ef4444,#f97316)" onclick="checkPassword()">⚡ Check PWD</button>
+    </div>
+  </div>
+  <div id="r-breach"></div>
+</div>
+
+<!-- ══ HASH ══ -->
+<div id="p-hash" class="panel">
+  <div class="icard" style="--ag:linear-gradient(90deg,#eab308,#10b981)">
+    <div class="ilabel">#️⃣ Hash Generator & Tools</div>
+    <div class="irow">
+      <div class="iw">
+        <svg viewBox="0 0 256 256" fill="currentColor"><path d="M229.66,218.34l-50.07-50.07a88.21,88.21,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.31ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
+        <input type="text" id="hashIn" placeholder="Teks / hash untuk diidentifikasi / dikonversi" onkeydown="if(e(event))runHash()">
+      </div>
+      <button class="btn" onclick="runHash()">⚡ Generate</button>
+    </div>
+    <div class="irow" style="margin-top:10px">
+      <div class="iw">
+        <select id="encMode" style="padding-left:10px">
+          <option value="hash">Hash Generator (MD5/SHA1/SHA256/SHA512)</option>
+          <option value="identify">Identify Hash Type</option>
+          <option value="b64e">Base64 Encode</option>
+          <option value="b64d">Base64 Decode</option>
+          <option value="urle">URL Encode</option>
+          <option value="urld">URL Decode</option>
+          <option value="pwstrength">Password Strength</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div id="r-hash"></div>
+</div>
+
+</div><!-- /wrap -->
+
+<div class="modal-bg" id="modal"><div class="modal"><h3 id="mT"></h3><p id="mB"></p><div class="modal-foot"><button class="btn-close" onclick="cm()">Tutup</button></div></div></div>
+<div class="copy-toast" id="toast">✅ Copied!</div>
+<footer>OSINT Suite v4.0 MAX &mdash; <span>9 jalur investigasi</span> &mdash; Semua processing lokal &amp; private</footer>
+
+<script>
+/* ══════════════════════════════════════
+   UTILITY
+══════════════════════════════════════ */
+const $=id=>document.getElementById(id);
+const enc=s=>encodeURIComponent(s);
+function e(ev){return ev.key==='Enter'}
+function sl(ms){return new Promise(r=>setTimeout(r,ms))}
+function cm(){$('modal').classList.remove('open')}
+function sm(t,b){$('mT').textContent=t;$('mB').textContent=b;$('modal').classList.add('open')}
+function sw(n,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+  $('p-'+n).classList.add('active'); btn.classList.add('active');
+}
+function toast(msg='✅ Copied!'){
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+function copyText(txt){navigator.clipboard.writeText(txt).then(()=>toast())}
+
+// History
+function saveHistory(type,val){
+  let h=JSON.parse(localStorage.getItem('osint_hist')||'[]');
+  const entry={type,val,ts:Date.now()};
+  h=h.filter(x=>!(x.type===type&&x.val===val));
+  h.unshift(entry); h=h.slice(0,15);
+  localStorage.setItem('osint_hist',JSON.stringify(h));
+  renderHistory();
+}
+function renderHistory(){
+  const h=JSON.parse(localStorage.getItem('osint_hist')||'[]');
+  const bar=$('histBar'), pills=$('histPills');
+  if(!h.length){bar.classList.remove('show');return}
+  bar.classList.add('show');
+  pills.innerHTML=h.slice(0,8).map(x=>`<span class="hist-pill" onclick="fillFromHistory('${x.type}','${x.val.replace(/'/g,"\\'")}')" title="${x.type}">${x.val.length>20?x.val.slice(0,20)+'…':x.val}</span>`).join('');
+}
+function fillFromHistory(type,val){
+  const map={email:'emailIn',phone:'phoneIn',username:'unIn',name:'nameIn',ip:'ipIn',domain:'domIn',breach:'breachEmail'};
+  const tabMap={email:'email',phone:'phone',username:'username',name:'name',ip:'ip',domain:'domain',breach:'breach'};
+  if(map[type]){$(map[type]).value=val}
+  if(tabMap[type]){const btn=document.querySelectorAll('.tb')[['email','phone','username','name','ip','image','domain','breach','hash'].indexOf(tabMap[type])];if(btn)sw(tabMap[type],btn)}
+}
+renderHistory();
+
+// Keyboard shortcuts
+document.addEventListener('keydown',ev=>{
+  if(ev.ctrlKey){
+    const tabs=['email','phone','username','name','ip','image','domain','breach','hash'];
+    const idx=parseInt(ev.key)-1;
+    if(idx>=0&&idx<tabs.length){ev.preventDefault();const btn=document.querySelectorAll('.tb')[idx];if(btn)sw(tabs[idx],btn)}
+  }
+});
+
+/* ══════════════════════════════════════
+   MD5
+══════════════════════════════════════ */
+function md5(s){function safeAdd(x,y){const l=(x&0xffff)+(y&0xffff);return((x>>16)+(y>>16)+(l>>16))<<16|l&0xffff}function brl(n,c){return n<<c|n>>>32-c}function cmn(q,a,b,x,s,t){return safeAdd(brl(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b)}function ff(a,b,c,d,x,s,t){return cmn(b&c|~b&d,a,b,x,s,t)}function gg(a,b,c,d,x,s,t){return cmn(b&d|c&~d,a,b,x,s,t)}function hh(a,b,c,d,x,s,t){return cmn(b^c^d,a,b,x,s,t)}function ii(a,b,c,d,x,s,t){return cmn(c^(b|~d),a,b,x,s,t)}function blks(s){const n=((s.length+64>>6)+1)*16,b=new Array(n).fill(0);for(let i=0;i<s.length;i++)b[i>>2]|=s.charCodeAt(i)<<(i%4<<3);b[s.length>>2]|=0x80<<(s.length%4<<3);b[n-2]=s.length*8;return b}const m=blks(s);let a=1732584193,b=-271733879,c=-1732584194,d=271733878;for(let i=0;i<m.length;i+=16){const[ao,bo,co,do_]=[a,b,c,d];a=ff(a,b,c,d,m[i],7,-680876936);d=ff(d,a,b,c,m[i+1],12,-389564586);c=ff(c,d,a,b,m[i+2],17,606105819);b=ff(b,c,d,a,m[i+3],22,-1044525330);a=ff(a,b,c,d,m[i+4],7,-176418897);d=ff(d,a,b,c,m[i+5],12,1200080426);c=ff(c,d,a,b,m[i+6],17,-1473231341);b=ff(b,c,d,a,m[i+7],22,-45705983);a=ff(a,b,c,d,m[i+8],7,1770035416);d=ff(d,a,b,c,m[i+9],12,-1958414417);c=ff(c,d,a,b,m[i+10],17,-42063);b=ff(b,c,d,a,m[i+11],22,-1990404162);a=ff(a,b,c,d,m[i+12],7,1804603682);d=ff(d,a,b,c,m[i+13],12,-40341101);c=ff(c,d,a,b,m[i+14],17,-1502002290);b=ff(b,c,d,a,m[i+15],22,1236535329);a=gg(a,b,c,d,m[i+1],5,-165796510);d=gg(d,a,b,c,m[i+6],9,-1069501632);c=gg(c,d,a,b,m[i+11],14,643717713);b=gg(b,c,d,a,m[i],20,-373897302);a=gg(a,b,c,d,m[i+5],5,-701558691);d=gg(d,a,b,c,m[i+10],9,38016083);c=gg(c,d,a,b,m[i+15],14,-660478335);b=gg(b,c,d,a,m[i+4],20,-405537848);a=gg(a,b,c,d,m[i+9],5,568446438);d=gg(d,a,b,c,m[i+14],9,-1019803690);c=gg(c,d,a,b,m[i+3],14,-187363961);b=gg(b,c,d,a,m[i+8],20,1163531501);a=gg(a,b,c,d,m[i+13],5,-1444681467);d=gg(d,a,b,c,m[i+2],9,-51403784);c=gg(c,d,a,b,m[i+7],14,1735328473);b=gg(b,c,d,a,m[i+12],20,-1926607734);a=hh(a,b,c,d,m[i+5],4,-378558);d=hh(d,a,b,c,m[i+8],11,-2022574463);c=hh(c,d,a,b,m[i+11],16,1839030562);b=hh(b,c,d,a,m[i+14],23,-35309556);a=hh(a,b,c,d,m[i+1],4,-1530992060);d=hh(d,a,b,c,m[i+4],11,1272893353);c=hh(c,d,a,b,m[i+7],16,-155497632);b=hh(b,c,d,a,m[i+10],23,-1094730640);a=hh(a,b,c,d,m[i+13],4,681279174);d=hh(d,a,b,c,m[i],11,-358537222);c=hh(c,d,a,b,m[i+3],16,-722521979);b=hh(b,c,d,a,m[i+6],23,76029189);a=hh(a,b,c,d,m[i+9],4,-640364487);d=hh(d,a,b,c,m[i+12],11,-421815835);c=hh(c,d,a,b,m[i+15],16,530742520);b=hh(b,c,d,a,m[i+2],23,-995338651);a=ii(a,b,c,d,m[i],6,-198630844);d=ii(d,a,b,c,m[i+7],10,1126891415);c=ii(c,d,a,b,m[i+14],15,-1416354905);b=ii(b,c,d,a,m[i+5],21,-57434055);a=ii(a,b,c,d,m[i+12],6,1700485571);d=ii(d,a,b,c,m[i+3],10,-1894986606);c=ii(c,d,a,b,m[i+10],15,-1051523);b=ii(b,c,d,a,m[i+1],21,-2054922799);a=ii(a,b,c,d,m[i+8],6,1873313359);d=ii(d,a,b,c,m[i+15],10,-30611744);c=ii(c,d,a,b,m[i+6],15,-1560198380);b=ii(b,c,d,a,m[i+13],21,1309151649);a=ii(a,b,c,d,m[i+4],6,-145523070);d=ii(d,a,b,c,m[i+11],10,-1120210379);c=ii(c,d,a,b,m[i+2],15,718787259);b=ii(b,c,d,a,m[i+9],21,-343485551);a=safeAdd(a,ao);b=safeAdd(b,bo);c=safeAdd(c,co);d=safeAdd(d,do_)}return[a,b,c,d].map(n=>(n>>>0).toString(16).padStart(8,'0').replace(/(..)/g,(_,p)=>p.split('').reverse().join(''))).join('')}
+
+/* ══════════════════════════════════════
+   SHA1 (for HIBP password check)
+══════════════════════════════════════ */
+async function sha1(str){
+  const buf=await crypto.subtle.digest('SHA-1',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+async function sha256(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function sha512(str){
+  const buf=await crypto.subtle.digest('SHA-512',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ══════════════════════════════════════
+   PLATFORM DB
+══════════════════════════════════════ */
+const PLATS={
+  "🔵 Sosial Media":[
+    {n:"Instagram",u:"https://instagram.com/{u}",i:"IG",c:"#E1306C"},
+    {n:"TikTok",u:"https://tiktok.com/@{u}",i:"TT",c:"#010101"},
+    {n:"Facebook",u:"https://facebook.com/{u}",i:"FB",c:"#1877F2"},
+    {n:"Twitter/X",u:"https://x.com/{u}",i:"X",c:"#14171A"},
+    {n:"LinkedIn",u:"https://linkedin.com/in/{u}",i:"IN",c:"#0A66C2"},
+    {n:"Snapchat",u:"https://snapchat.com/add/{u}",i:"SC",c:"#FFFC00"},
+    {n:"Pinterest",u:"https://pinterest.com/{u}",i:"PT",c:"#E60023"},
+    {n:"Reddit",u:"https://reddit.com/user/{u}",i:"RD",c:"#FF4500"},
+    {n:"Tumblr",u:"https://www.tumblr.com/{u}",i:"TU",c:"#35465C"},
+    {n:"Threads",u:"https://threads.net/@{u}",i:"TH",c:"#000"},
+    {n:"BeReal",u:"https://bere.al/{u}",i:"BR",c:"#333"},
+    {n:"Mastodon",u:"https://mastodon.social/@{u}",i:"MT",c:"#6364FF"},
+  ],
+  "🎵 Musik & Entertainment":[
+    {n:"YouTube",u:"https://youtube.com/@{u}",i:"YT",c:"#FF0000"},
+    {n:"Twitch",u:"https://twitch.tv/{u}",i:"TW",c:"#9146FF"},
+    {n:"Spotify",u:"https://open.spotify.com/user/{u}",i:"SP",c:"#1DB954"},
+    {n:"SoundCloud",u:"https://soundcloud.com/{u}",i:"SN",c:"#FF5500"},
+    {n:"Last.fm",u:"https://last.fm/user/{u}",i:"LF",c:"#D51007"},
+    {n:"Vimeo",u:"https://vimeo.com/{u}",i:"VM",c:"#1AB7EA"},
+    {n:"Kick",u:"https://kick.com/{u}",i:"KK",c:"#53FC18"},
+    {n:"Bandcamp",u:"https://{u}.bandcamp.com",i:"BC",c:"#1da0c3"},
+  ],
+  "💻 Dev & Tech":[
+    {n:"GitHub",u:"https://github.com/{u}",i:"GH",c:"#f0f6fc",api:"https://api.github.com/users/{u}"},
+    {n:"GitLab",u:"https://gitlab.com/{u}",i:"GL",c:"#FC6D26"},
+    {n:"Dev.to",u:"https://dev.to/{u}",i:"DV",c:"#0a0a0a"},
+    {n:"Hashnode",u:"https://hashnode.com/@{u}",i:"HN",c:"#2962FF"},
+    {n:"Stack Overflow",u:"https://stackoverflow.com/users/{u}",i:"SO",c:"#F48024"},
+    {n:"Replit",u:"https://replit.com/@{u}",i:"RP",c:"#F26207"},
+    {n:"Codepen",u:"https://codepen.io/{u}",i:"CP",c:"#47CF73"},
+    {n:"Kaggle",u:"https://kaggle.com/{u}",i:"KG",c:"#20BEFF"},
+    {n:"Hugging Face",u:"https://huggingface.co/{u}",i:"HF",c:"#FFD21E"},
+    {n:"HackerNews",u:"https://news.ycombinator.com/user?id={u}",i:"HN",c:"#FF6600"},
+  ],
+  "🛒 Creator":[
+    {n:"Medium",u:"https://medium.com/@{u}",i:"MD",c:"#000"},
+    {n:"Substack",u:"https://{u}.substack.com",i:"SS",c:"#FF6719"},
+    {n:"Ko-fi",u:"https://ko-fi.com/{u}",i:"KF",c:"#FF5E5B"},
+    {n:"Patreon",u:"https://patreon.com/{u}",i:"PA",c:"#FF424D"},
+    {n:"Telegram",u:"https://t.me/{u}",i:"TG",c:"#2CA5E0"},
+    {n:"Keybase",u:"https://keybase.io/{u}",i:"KB",c:"#FF6F21"},
+    {n:"About.me",u:"https://about.me/{u}",i:"AM",c:"#00ADEF"},
+    {n:"Linktree",u:"https://linktr.ee/{u}",i:"LK",c:"#43E660"},
+    {n:"Flickr",u:"https://flickr.com/people/{u}",i:"FL",c:"#0063DC"},
+    {n:"Gravatar",u:"https://gravatar.com/{u}",i:"GV",c:"#1E8CBE"},
+  ],
+  "🎮 Gaming":[
+    {n:"Steam",u:"https://steamcommunity.com/id/{u}",i:"ST",c:"#171a21"},
+    {n:"Xbox",u:"https://account.xbox.com/profile?gamertag={u}",i:"XB",c:"#107C10"},
+    {n:"PSN",u:"https://psnprofiles.com/{u}",i:"PS",c:"#003087"},
+    {n:"Roblox",u:"https://www.roblox.com/user.aspx?username={u}",i:"RB",c:"#CC0000"},
+    {n:"Epic",u:"https://www.epicgames.com/id/{u}",i:"EG",c:"#2F3234"},
+  ],
+};
+
+/* ══════════════════════════════════════
+   RISK SCORE
+══════════════════════════════════════ */
+let riskData={gravatar:false,github:false,platsFound:0,breached:false,credLeaked:false};
+function calcRisk(){
+  let s=0;
+  if(riskData.gravatar)s+=10;
+  if(riskData.github)s+=15;
+  if(riskData.platsFound>5)s+=10;
+  if(riskData.platsFound>15)s+=10;
+  if(riskData.breached)s+=30;
+  if(riskData.credLeaked)s+=25;
+  return Math.min(s,100);
+}
+function riskHTML(score){
+  const color=score<31?'var(--gn)':score<61?'var(--ye)':'var(--rd)';
+  const label=score<31?'🟢 Privasi Relatif Aman':score<61?'🟡 Perlu Perhatian':'🔴 Sangat Mudah Dilacak';
+  return `<div class="risk-meter">
+    <div class="risk-title">📊 Privacy Risk Score</div>
+    <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:${score}%;background:${color}"></div></div>
+    <div class="risk-info">
+      <span class="risk-score-num" style="color:${color}">${score}/100</span>
+      <span style="color:var(--t2);font-size:12px;align-self:center">${label}</span>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════
+   EMAIL SCAN
+══════════════════════════════════════ */
+async function scanEmail(){
+  const raw=$('emailIn').value.trim().toLowerCase();
+  const uo=$('emailUO').value.trim();
+  if(!raw&&!uo){sm('Ups','Masukkan email dulu!');return}
+  saveHistory('email',raw||uo);
+
+  const hash=md5(raw||uo);
+  const uname=uo||(raw.includes('@')?raw.split('@')[0]:raw);
+  const domain=raw.includes('@')?raw.split('@')[1]:'-';
+
+  riskData={gravatar:false,github:false,platsFound:0,breached:false,credLeaked:false};
+
+  const res=$('r-email'); res.innerHTML='';
+  res.innerHTML+=chipsHtml([['email',raw||'-'],['username',uname],['domain',domain],['md5',hash]]);
+
+  // Risk placeholder
+  const riskEl=document.createElement('div'); riskEl.id='riskEl'; res.appendChild(riskEl);
+
+  // Gravatar
+  const pfEl=document.createElement('div'); res.appendChild(pfEl);
+  await checkGravatar(hash,uname,pfEl);
+
+  // Emailrep
+  const erEl=document.createElement('div'); res.appendChild(erEl);
+  checkEmailRep(raw,erEl);
+
+  // Platform scan
+  await platScan('r-email',uname,hash);
+
+  // Update risk
+  riskEl.innerHTML=riskHTML(calcRisk());
+}
+
+/* ══════════════════════════════════════
+   GRAVATAR
+══════════════════════════════════════ */
+async function checkGravatar(hash,uname,container){
+  try{
+    const r=await fetch(`https://gravatar.com/avatar/${hash}?d=404&s=200`);
+    if(r.ok){
+      riskData.gravatar=true;
+      let pf=null;
+      try{const pr=await fetch(`https://gravatar.com/profile/${hash}.json`);if(pr.ok)pf=await pr.json();}catch(_){}
+      const e=pf?.entry?.[0];
+      container.innerHTML=`<div class="pf-card">
+        <img src="https://gravatar.com/avatar/${hash}?s=200" onerror="this.style.display='none'">
+        <div>
+          <div class="pf-name">${e?.displayName||uname}</div>
+          <div class="pf-desc">${e?.aboutMe||'Gravatar profile ditemukan'}</div>
+          <div class="pf-badges">
+            <span class="badge bg">✓ Gravatar Registered</span>
+            ${(e?.accounts||[]).map(a=>`<span class="badge bc">${a.shortname}</span>`).join('')}
+            ${(e?.urls||[]).map(u=>`<span class="badge bb">🔗 ${u.title||u.value}</span>`).join('')}
+          </div>
+        </div>
+      </div>`;
+    } else {
+      container.innerHTML=`<div class="tip">❌ Gravatar: Tidak ada profil terdaftar untuk hash ini.</div>`;
+    }
+  }catch(e){
+    container.innerHTML=`<div class="tip">⚠️ Gravatar check gagal (jaringan/CORS).</div>`;
+  }
+}
+
+/* ══════════════════════════════════════
+   EMAILREP
+══════════════════════════════════════ */
+async function checkEmailRep(email,container){
+  if(!email||!email.includes('@')){return}
+  try{
+    const r=await fetch(`https://emailrep.io/${enc(email)}`,{headers:{'accept':'application/json'}});
+    if(r.ok){
+      const d=await r.json();
+      const det=d.details||{};
+      const susp=d.suspicious;
+      const breached=det.credentials_leaked||det.data_breach;
+      if(breached){riskData.breached=true;riskData.credLeaked=det.credentials_leaked;}
+      const cls=susp?'danger':d.reputation==='high'?'safe':'warn';
+      const repColor={high:'var(--gn)',medium:'var(--ye)',low:'var(--rd)',none:'var(--t3)'}[d.reputation]||'var(--t3)';
+      container.innerHTML=`<div class="breach-card ${cls}" style="margin-bottom:14px">
+        <div class="bc-head">
+          <div class="bc-icon">${susp?'⚠️':'✅'}</div>
+          <div>
+            <div class="bc-name">Email Reputation Report</div>
+            <div class="bc-sub" style="color:${repColor}">Reputasi: ${d.reputation||'unknown'} | References: ${d.references||0}</div>
+          </div>
+        </div>
+        <div class="bc-tags">
+          ${susp?'<span class="badge br">⚠️ Suspicious</span>':'<span class="badge bg">✓ Tidak Suspicious</span>'}
+          ${det.blacklisted?'<span class="badge br">🚫 Blacklisted</span>':''}
+          ${det.malicious_activity?'<span class="badge br">🦠 Malicious Activity</span>':''}
+          ${breached?'<span class="badge br">💀 Credentials Leaked</span>':'<span class="badge bg">🔒 Tidak Bocor</span>'}
+          ${det.spam?'<span class="badge by">📨 Spam</span>':''}
+          ${det.disposable?'<span class="badge by">🗑️ Disposable Email</span>':''}
+          ${det.first_seen?`<span class="badge bc">📅 First seen: ${det.first_seen}</span>`:''}
+        </div>
+      </div>`;
+    }
+  }catch(e){
+    container.innerHTML=`<div class="tip">⚠️ EmailRep check gagal — CORS atau rate limit. Coba langsung: <a href="https://emailrep.io/${enc(email)}" target="_blank">emailrep.io</a></div>`;
+  }
+}
+
+/* ══════════════════════════════════════
+   PLATFORM SCAN
+══════════════════════════════════════ */
+function chipsHtml(pairs){return'<div class="chips">'+pairs.map(([k,v])=>`<div class="chip"><span class="k">${k}: </span><span class="v">${v}</span></div>`).join('')+'</div>'}
+function statsHtml(t,f,n,m){return`<div class="stats"><div class="stat"><div class="n n-c">${t}</div><div class="l">Total</div></div><div class="stat"><div class="n n-g">${f}</div><div class="l">Ditemukan</div></div><div class="stat"><div class="n n-r">${n}</div><div class="l">Tidak Ada</div></div><div class="stat"><div class="n n-y">${m}</div><div class="l">Manual</div></div></div>`}
+
+async function platScan(resId,uname,hash){
+  const res=$(resId);
+  const total=Object.values(PLATS).reduce((a,b)=>a+b.length,0);
+  let found=0,nf=0,man=0,done=0;
+
+  const stEl=document.createElement('div');stEl.id='st-'+resId;stEl.innerHTML=statsHtml(total,0,0,0);res.appendChild(stEl);
+  const pgEl=document.createElement('div');pgEl.innerHTML=`<div class="prog"><div class="prog-hd"><span id="pl-${resId}">Scanning...</span><span id="pp-${resId}">0%</span></div><div class="prog-bg"><div class="prog-fill" id="pf-${resId}"></div></div></div>`;res.appendChild(pgEl);
+  const lgEl=document.createElement('div');lgEl.className='log';lgEl.id='lg-'+resId;res.appendChild(lgEl);
+  const shEl=document.createElement('div');shEl.innerHTML=`<div class="shd"><div class="shd-l"><div class="sdot"></div>Platform Scan Results</div><div class="shd-r"><button class="btn-sm" onclick="copyRep('${resId}','${uname}')">📋 Copy</button><button class="btn-sm" onclick="exportJSON('${resId}','${uname}')">💾 JSON</button><button class="btn-sm" onclick="window.print()">🖨️ Print</button></div></div>`;res.appendChild(shEl);
+  const catCont=document.createElement('div');res.appendChild(catCont);
+
+  function lg(m,c){const d=document.createElement('div');d.className='ll '+(c||'');d.textContent='['+new Date().toLocaleTimeString()+'] '+m;lgEl.appendChild(d);lgEl.scrollTop=lgEl.scrollHeight}
+  function upd(n,status,url){
+    const sid=n.replace(/\W/g,'_');
+    const card=$(`pc-${resId}-${sid}`),dot=$(`pd-${resId}-${sid}`);
+    if(!card||!dot)return;
+    card.classList.remove('checking');
+    if(status==='found'){card.classList.add('found');dot.className='pdot sd-g';found++;riskData.platsFound++;}
+    else if(status==='nf'){card.classList.add('nf');dot.className='pdot sd-r';nf++;}
+    else{card.classList.add('open');dot.className='pdot sd-b';man++;}
+    done++;
+    const pct=Math.round(done/total*100);
+    const pf=$('pf-'+resId),pl=$('pl-'+resId),pp=$('pp-'+resId);
+    if(pf)pf.style.width=pct+'%';if(pl)pl.textContent=`Scanning... (${done}/${total})`;if(pp)pp.textContent=pct+'%';
+    $('st-'+resId).innerHTML=statsHtml(total,found,nf,man);
+    const re=$('riskEl');if(re)re.innerHTML=riskHTML(calcRisk());
+  }
+
+  for(const[cat,plats] of Object.entries(PLATS)){
+    const g=document.createElement('div');g.className='cat';
+    g.innerHTML=`<div class="cat-lbl">${cat}</div>`;
+    const grid=document.createElement('div');grid.className='card-grid';
+    for(const p of plats){
+      const url=p.u.replace(/{u}/g,uname);
+      const card=document.createElement('div');
+      card.className='pcard checking';card.id=`pc-${resId}-${p.n.replace(/\W/g,'_')}`;
+      card.onclick=()=>window.open(url,'_blank');
+      card.innerHTML=`<div class="picon" style="background:${p.c}22;color:${p.c}">${p.i}</div><div style="flex:1;min-width:0"><div class="pname">${p.n}</div><div class="purl">${url.length>36?url.slice(0,36)+'…':url}</div></div><div class="pdot sd-c" id="pd-${resId}-${p.n.replace(/\W/g,'_')}"></div>`;
+      grid.appendChild(card);
+    }
+    g.appendChild(grid);catCont.appendChild(g);
+  }
+
+  lg(`🎯 Scanning: ${uname}`,'in');
+
+  for(const[cat,plats] of Object.entries(PLATS)){
+    await Promise.all(plats.map(async p=>{
+      if(p.api){
+        try{
+          const r=await fetch(p.api.replace(/{u}/g,uname));
+          if(r.status===200){lg(`✅ ${p.n}: FOUND`,'ok');upd(p.n,'found');if(p.n==='GitHub')riskData.github=true;}
+          else if(r.status===404){lg(`❌ ${p.n}: Not found`,'er');upd(p.n,'nf');}
+          else{lg(`🔗 ${p.n}: Manual`,'');upd(p.n,'open');}
+        }catch(e){upd(p.n,'open');}
+        return;
+      }
+      lg(`🔗 ${p.n}: Link generated`,'');
+      upd(p.n,'open');
+    }));
+    await sl(15);
+  }
+  if($('pl-'+resId))$('pl-'+resId).textContent='✅ Selesai LITE Scan!';
+  lg(`=== LITE DONE: ${found} found | ${man} manual ===`,'in');
+  const re=$('riskEl');if(re)re.innerHTML=riskHTML(calcRisk());
+}
+
+/* ══════════════════════════════════════
+   DEEP SCAN (VERCEL BACKEND)
+══════════════════════════════════════ */
+async function runDeepScan(resId, uname, hash) {
+  const res = $(resId);
+  const total = Object.values(PLATS).reduce((a,b)=>a+b.length,0);
+  let found=0,nf=0,man=0,done=0,err=0;
+
+  // Init UI same as platScan
+  const stEl = document.createElement('div'); stEl.id = 'st-deep-'+resId; stEl.innerHTML = statsHtml(total,0,0,0); res.appendChild(stEl);
+  const pgEl = document.createElement('div'); pgEl.innerHTML = `<div class="prog"><div class="prog-hd"><span id="pl-deep-${resId}">Deep Scanning via Vercel...</span><span id="pp-deep-${resId}">0%</span></div><div class="prog-bg"><div class="prog-fill" id="pf-deep-${resId}"></div></div></div>`; res.appendChild(pgEl);
+  const lgEl = document.createElement('div'); lgEl.className = 'log'; lgEl.id = 'lg-deep-'+resId; res.appendChild(lgEl);
+  
+  function lg(m,c){const d=document.createElement('div');d.className='ll '+(c||'');d.textContent='['+new Date().toLocaleTimeString()+'] '+m;lgEl.appendChild(d);lgEl.scrollTop=lgEl.scrollHeight}
+  
+  // Render cards
+  const catCont = document.createElement('div'); res.appendChild(catCont);
+  for(const[cat,plats] of Object.entries(PLATS)){
+    const g=document.createElement('div');g.className='cat';
+    g.innerHTML=`<div class="cat-lbl">${cat}</div>`;
+    const grid=document.createElement('div');grid.className='card-grid';
+    for(const p of plats){
+      const url=p.u.replace(/{u}/g,uname);
+      const card=document.createElement('div');
+      card.className='pcard checking';card.id=`pcd-${resId}-${p.n.replace(/\W/g,'_')}`;
+      card.onclick=()=>window.open(url,'_blank');
+      card.innerHTML=`<div class="picon" style="background:${p.c}22;color:${p.c}">${p.i}</div><div style="flex:1;min-width:0"><div class="pname">${p.n}</div><div class="purl">${url.length>36?url.slice(0,36)+'…':url}</div></div><div class="pdot sd-c" id="pdd-${resId}-${p.n.replace(/\W/g,'_')}"></div>`;
+      grid.appendChild(card);
+    }
+    g.appendChild(grid);catCont.appendChild(g);
+  }
+
+  function updDeep(n,status){
+    const sid=n.replace(/\W/g,'_');
+    const card=$(`pcd-${resId}-${sid}`),dot=$(`pdd-${resId}-${sid}`);
+    if(!card||!dot)return;
+    card.classList.remove('checking');
+    if(status==='found'){card.classList.add('found');dot.className='pdot sd-g';found++;riskData.platsFound++;}
+    else if(status==='not_found'){card.classList.add('nf');dot.className='pdot sd-r';nf++;}
+    else{card.classList.add('open');dot.className='pdot sd-y';err++;man++;}
+    done++;
+    const pct=Math.round(done/total*100);
+    const pf=$('pf-deep-'+resId),pl=$('pl-deep-'+resId),pp=$('pp-deep-'+resId);
+    if(pf)pf.style.width=pct+'%';if(pl)pl.textContent=`Deep Scanning... (${done}/${total})`;if(pp)pp.textContent=pct+'%';
+    $('st-deep-'+resId).innerHTML=statsHtml(total,found,nf,man);
+    const re=$('riskEl');if(re)re.innerHTML=riskHTML(calcRisk());
+  }
+
+  lg(`🚀 Initiating Deep Scan: ${uname}`,'in');
+  
+  // Flatten all platforms for chunking
+  let allPlats = [];
+  for (const plats of Object.values(PLATS)) allPlats.push(...plats);
+  
+  // Chunking logic (10 platforms per request)
+  const chunkSize = 10;
+  for (let i = 0; i < allPlats.length; i += chunkSize) {
+    const chunk = allPlats.slice(i, i + chunkSize);
+    try {
+      lg(`Sending chunk ${i/chunkSize + 1} to Vercel API...`, 'in');
+      const response = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target: uname, platforms: chunk })
+      });
+      
+      if (!response.ok) {
+         lg(`⚠️ Vercel API Error: ${response.status}`, 'er');
+         chunk.forEach(p => updDeep(p.n, 'error'));
+         continue;
+      }
+      
+      const results = await response.json();
+      results.forEach(r => {
+        if (r.status === 'found') lg(`✅ ${r.name}: FOUND (Deep)`, 'ok');
+        else if (r.status === 'not_found') lg(`❌ ${r.name}: Not found`, 'er');
+        else lg(`⚠️ ${r.name}: Error/Manual`, 'wa');
+        updDeep(r.name, r.status);
+      });
+      
+    } catch (ex) {
+      lg(`Network Error to Backend: ${ex.message}`, 'er');
+      chunk.forEach(p => updDeep(p.n, 'error'));
+    }
+  }
+
+  if($('pl-deep-'+resId))$('pl-deep-'+resId).textContent='✅ Selesai DEEP Scan!';
+  lg(`=== DEEP DONE: ${found} found | ${nf} not found ===`,'in');
+}
+
+async function deepScanEmail() {
+  const raw=$('emailIn').value.trim().toLowerCase();
+  const uo=$('emailUO').value.trim();
+  if(!raw&&!uo){sm('Ups','Masukkan email dulu!');return}
+  const uname=uo||(raw.includes('@')?raw.split('@')[0]:raw);
+  
+  const res=$('r-email'); res.innerHTML='';
+  // Risk placeholder
+  const riskEl=document.createElement('div'); riskEl.id='riskEl'; res.appendChild(riskEl);
+  
+  await runDeepScan('r-email', uname, md5(raw||uo));
+}
+
+async function deepScanUsername() {
+  const u=$('unIn').value.trim();
+  if(!u){sm('Ups','Masukkan username!');return}
+  const res=$('r-username');res.innerHTML='';
+  // Risk placeholder
+  const riskEl=document.createElement('div'); riskEl.id='riskEl'; res.appendChild(riskEl);
+  
+  await runDeepScan('r-username', u, md5(u));
+}
+
+/* ══════════════════════════════════════
+   PHONE SCAN
+══════════════════════════════════════ */
+function detectIDCarrier(num){
+  const prefixes=[
+    ['Telkomsel',/^(0811|0812|0813|0821|0822|0823|0851|0852|0853)/],
+    ['Indosat Ooredoo',/^(0814|0815|0816|0855|0856|0857|0858)/],
+    ['XL Axiata',/^(0817|0818|0819|0859|0877|0878)/],
+    ['Tri (3)',/^(0895|0896|0897|0898|0899)/],
+    ['Smartfren',/^(0881|0882|0883|0884|0885|0886|0887|0888|0889)/],
+    ['Axis',/^(0831|0832|0833|0838)/],
+    ['Bolt',/^(08)/],
+  ];
+  const n='0'+num.replace(/^0+/,'');
+  for(const[name,rx] of prefixes)if(rx.test(n))return name;
+  return null;
+}
+
+async function scanPhone(){
+  const cc=$('cc').value;
+  const raw=$('phoneIn').value.trim().replace(/\D/g,'');
+  if(!raw){sm('Ups','Masukkan nomor HP!');return}
+
+  const full=cc+raw;
+  const intl=full.replace('+','');
+  saveHistory('phone',full);
+
+  const res=$('r-phone'); res.innerHTML='';
+
+  // libphonenumber parse
+  let pnInfo={valid:false,type:'Unknown',region:'-',national:full,international:full};
+  try{
+    if(typeof parsePhoneNumber!=='undefined'){
+      const pn=parsePhoneNumber(full);
+      if(pn){
+        pnInfo={
+          valid:pn.isValid(),
+          type:pn.getType()||'Unknown',
+          region:pn.country||'-',
+          national:pn.formatNational(),
+          international:pn.formatInternational(),
+          e164:pn.format('E.164'),
+        };
+      }
+    }
+  }catch(_){}
+
+  const carrier=cc==='+62'?detectIDCarrier(raw):null;
+
+  res.innerHTML+=chipsHtml([
+    ['nomor',full],['valid',pnInfo.valid?'✅ Ya':'❌ Tidak'],
+    ['tipe',pnInfo.type],['negara',pnInfo.region],
+    ['format nasional',pnInfo.national],
+    ...(carrier?[['operator Indonesia',carrier]]:[]),
+  ]);
+
+  res.innerHTML+=`<div class="shd" style="margin-top:4px"><div class="shd-l"><div class="sdot" style="background:var(--gn)"></div>Phone Lookup Services</div></div>`;
+
+  const services=[
+    {icon:"📞",name:"Truecaller",desc:"Caller ID & nama pemilik terbesar",url:`https://www.truecaller.com/search/id/${enc(raw)}`,c:'var(--bl)'},
+    {icon:"💬",name:"WhatsApp",desc:"Cek aktif di WhatsApp",url:`https://wa.me/${intl}`,c:'#25D366'},
+    {icon:"✈️",name:"Telegram",desc:"Chat via Telegram",url:`https://t.me/+${intl}`,c:'#2CA5E0'},
+    {icon:"📱",name:"Sync.me",desc:"Reverse lookup & social profiles",url:`https://sync.me/search/?number=${enc(full)}`,c:'var(--pu)'},
+    {icon:"🕵️",name:"SpyDialer",desc:"Free reverse phone (US/CA)",url:`https://spydialer.com/results.aspx?phone=${raw}`,c:'var(--or)'},
+    {icon:"🔍",name:"Google",desc:"Search nomor di Google",url:`https://www.google.com/search?q="${enc(full)}"`,c:'var(--rd)'},
+    {icon:"📘",name:"Facebook",desc:"Cari akun FB by nomor",url:`https://www.facebook.com/search/top/?q=${enc(raw)}`,c:'#1877F2'},
+    {icon:"🌐",name:"WhitePages",desc:"Direktori & reverse lookup",url:`https://www.whitepages.com/phone/${raw}`,c:'var(--cy)'},
+    {icon:"🔎",name:"AnyWho",desc:"Reverse phone gratis",url:`https://www.anywho.com/reverse-lookup/${raw}`,c:'var(--ye)'},
+    {icon:"📊",name:"NumLookup",desc:"Free phone number lookup",url:`https://www.numlookupapi.com/api/v1/lookup/${intl}`,c:'var(--gn)'},
+    {icon:"💡",name:"Infobel",desc:"Direktori telepon internasional",url:`https://www.infobel.com/en/world/search_directory.aspx?qtel=${enc(full)}`,c:'var(--or)'},
+    {icon:"🌍",name:"Spokeo",desc:"People search engine",url:`https://www.spokeo.com/phone-search/${raw}`,c:'var(--pu)'},
+    {icon:"🔗",name:"BeenVerified",desc:"Background & phone check",url:`https://www.beenverified.com/phone/${raw}`,c:'var(--rd)'},
+    {icon:"📡",name:"CallerID Test",desc:"Cek nama caller ID",url:`https://www.calleridtest.com/`,c:'var(--pk)'},
+    {icon:"🇮🇩",name:"Cek Rekening ID",desc:"Cek nomor rekening/HP Indonesia",url:`https://cekrekening.id/`,c:'#c0392b'},
+    {icon:"🔬",name:"PhoneValidator",desc:"Validasi & info operator",url:`https://www.phonevalidator.com/index.aspx?phonenum=${raw}`,c:'var(--gn)'},
+  ];
+
+  const grid=document.createElement('div');grid.className='phone-grid';res.appendChild(grid);
+  for(const s of services){
+    const card=document.createElement('div');card.className='ph-card';card.style.borderColor=s.c+'44';
+    card.innerHTML=`<a href="${s.url}" target="_blank" rel="noopener"><div class="ph-ic">${s.icon}</div><div class="ph-info"><div class="ph-name">${s.name}</div><div class="ph-desc">${s.desc}</div></div><span style="color:var(--t3);margin-left:auto">→</span></a>`;
+    grid.appendChild(card);
+  }
+  res.innerHTML+=`<div class="tip" style="margin-top:14px">💡 <strong>Tips Indonesia:</strong> Truecaller paling akurat. WhatsApp → kalau chat terbuka, nomor aktif. Carrier terdeteksi: <strong>${carrier||'Tidak dikenali / Luar negeri'}</strong></div>`;
+}
+
+/* ══════════════════════════════════════
+   USERNAME SCAN
+══════════════════════════════════════ */
+async function scanUsername(){
+  const u=$('unIn').value.trim();
+  if(!u){sm('Ups','Masukkan username!');return}
+  saveHistory('username',u);
+  const res=$('r-username');res.innerHTML='';
+  res.innerHTML+=chipsHtml([['username',u],['md5',md5(u)]]);
+  await platScan('r-username',u,md5(u));
+}
+
+/* ══════════════════════════════════════
+   USERNAME PERMUTATION
+══════════════════════════════════════ */
+function genPerms(){
+  const u=$('unIn').value.trim();
+  if(!u){sm('Ups','Masukkan username dulu sebelum generate variasi!');return}
+  const res=$('r-username');res.innerHTML='';
+
+  const perms=[...new Set([
+    u, u+'_', '_'+u, u+'.', '.'+u, u+'-',
+    u+'1', u+'2', u+'123', u+'_1', u+'01',
+    u.replace(/_/g,'.'), u.replace(/_/g,''), u.replace(/_/g,'-'),
+    u+'official', u+'real', u+'irl', u+'original',
+    u+'gaming', u+'music', u+'art', u+'tech',
+    u+'id', u+'indo', u+'_id', u+'.id',
+    u+'99', u+'00', u+'777',
+    u[0].toUpperCase()+u.slice(1),
+    u.toUpperCase(),
+  ])].filter(v=>v&&v.length>0);
+
+  res.innerHTML=`<div class="shd"><div class="shd-l"><div class="sdot" style="background:var(--pu)"></div>${perms.length} Variasi Username Ditemukan</div><div class="shd-r"><button class="btn-sm" onclick="scanAllPerms()">🔍 Scan Semua</button></div></div>`;
+  res.innerHTML+=`<div class="tip">💡 Klik variasi untuk scan platform. Atau tekan "Scan Semua" untuk scan variasi pertama ke-10 sekaligus.</div>`;
+
+  const grid=document.createElement('div');grid.className='perm-grid';
+  perms.forEach((v,i)=>{
+    const pill=document.createElement('div');pill.className='perm-pill';
+    pill.innerHTML=`<span>${v}</span><span class="pp-use" onclick="usePerim(event,'${v.replace(/'/g,"\\'")}')">→ scan</span>`;
+    pill.onclick=(ev)=>{if(ev.target.classList.contains('pp-use'))return;$('unIn').value=v;};
+    grid.appendChild(pill);
+  });
+  res.appendChild(grid);
+  window._perms=perms;
+}
+
+function usePerim(ev,val){ev.stopPropagation();$('unIn').value=val;scanUsername();}
+
+async function scanAllPerms(){
+  const perms=(window._perms||[]).slice(0,8);
+  for(const p of perms){$('unIn').value=p;await scanUsername();await sl(500);}
+}
+
+/* ══════════════════════════════════════
+   NAME SEARCH
+══════════════════════════════════════ */
+function scanName(){
+  const name=$('nameIn').value.trim();
+  const loc=$('nameLocIn').value.trim();
+  if(!name){sm('Ups','Masukkan nama!');return}
+  saveHistory('name',name);
+  const q=name+(loc?' '+loc:'');
+  const res=$('r-name');res.innerHTML='';
+  res.innerHTML+=chipsHtml([['nama',name],['lokasi',loc||'-'],['query',q]]);
+
+  const sites=[
+    {icon:"🔍",name:"Google",sub:"Hasil terlengkap",url:`https://www.google.com/search?q="${enc(name)}"${loc?' "'+enc(loc)+'"':''}`,c:"#EA4335"},
+    {icon:"🔍",name:"Bing",sub:"Index luas",url:`https://www.bing.com/search?q="${enc(name)}"${loc?' '+enc(loc):''}`,c:"#00809D"},
+    {icon:"📘",name:"Facebook",sub:"Cari akun FB by nama",url:`https://www.facebook.com/search/people/?q=${enc(name)}`,c:"#1877F2"},
+    {icon:"💼",name:"LinkedIn",sub:"Profil profesional",url:`https://www.linkedin.com/search/results/people/?keywords=${enc(name)}`,c:"#0A66C2"},
+    {icon:"🐦",name:"Twitter/X",sub:"Cari orang di X",url:`https://x.com/search?q=${enc(name)}&f=user`,c:"#000"},
+    {icon:"📸",name:"Instagram",sub:"Cari profil IG",url:`https://www.instagram.com/web/search/topsearch/?query=${enc(name)}`,c:"#E1306C"},
+    {icon:"🎵",name:"TikTok",sub:"Cari kreator TikTok",url:`https://www.tiktok.com/search/user?q=${enc(name)}`,c:"#010101"},
+    {icon:"👥",name:"Spokeo",sub:"People search (US)",url:`https://www.spokeo.com/${enc(name.replace(' ','-'))}`,c:"#7C3AED"},
+    {icon:"📋",name:"Pipl",sub:"Deep people search",url:`https://pipl.com/search/?q=${enc(name)}&l=${enc(loc||'')}`,c:"#2563EB"},
+    {icon:"🔎",name:"Intelius",sub:"Background check (US)",url:`https://www.intelius.com/results.php?ReportType=1&searchFirstName=${enc(name.split(' ')[0])}&searchLastName=${enc(name.split(' ').slice(1).join(' '))}`,c:"#1E40AF"},
+    {icon:"🌐",name:"WhitePages",sub:"Direktori USA",url:`https://www.whitepages.com/name/${enc(name.replace(' ','-'))}`,c:"#00B4D8"},
+    {icon:"📜",name:"Radaris",sub:"People aggregator",url:`https://radaris.com/p/${enc(name.replace(' ','/'))}`,c:"#10B981"},
+    {icon:"📰",name:"Google News",sub:"Berita tentang orang ini",url:`https://news.google.com/search?q="${enc(name)}"`,c:"#4285F4"},
+    {icon:"🏛️",name:"PeekYou",sub:"Social profiles aggregator",url:`https://www.peekyou.com/${enc(name.replace(' ','_'))}`,c:"#F59E0B"},
+    {icon:"🎓",name:"Academia.edu",sub:"Profil akademisi",url:`https://www.academia.edu/search?q=${enc(name)}`,c:"#41A85F"},
+    {icon:"🐙",name:"GitHub Users",sub:"Developer profiles",url:`https://github.com/search?q=${enc(name)}&type=users`,c:"#F0F6FC"},
+    {icon:"📂",name:"BeenVerified",sub:"Public records",url:`https://www.beenverified.com/people/${enc(name.replace(' ','-'))}`,c:"#DC2626"},
+    {icon:"🔍",name:"Yandex",sub:"Cari di Yandex",url:`https://yandex.com/search/?text="${enc(name)}"`,c:"#FF0000"},
+    {icon:"📍",name:"Google Maps",sub:"Cari orang di lokasi",url:`https://www.google.com/maps/search/${enc(name+' '+loc)}`,c:"#34A853"},
+    {icon:"🇮🇩",name:"Pddikti",sub:"Data mahasiswa Indonesia",url:`https://pddikti.kemdikbud.go.id/search/${enc(name)}`,c:"#c0392b"},
+    {icon:"🇮🇩",name:"Kompas",sub:"Berita nama di Kompas",url:`https://search.kompas.com/search/?q="${enc(name)}"`,c:"#c0392b"},
+    {icon:"🇮🇩",name:"Detik",sub:"Berita nama di Detik",url:`https://www.detik.com/search/searchall?query=${enc(name)}`,c:"#e74c3c"},
+  ];
+
+  res.innerHTML+=`<div class="shd"><div class="shd-l"><div class="sdot" style="background:var(--or)"></div>People Search Engines (${sites.length})</div></div>`;
+  const grid=document.createElement('div');grid.className='name-grid';
+  for(const s of sites){
+    const a=document.createElement('a');a.className='n-card';a.href=s.url;a.target='_blank';a.rel='noopener';
+    a.style.borderColor=s.c+'33';
+    a.innerHTML=`<div class="n-ic" style="color:${s.c}">${s.icon}</div><div><div class="n-title">${s.name}</div><div class="n-sub">${s.sub}</div></div>`;
+    grid.appendChild(a);
+  }
+  res.appendChild(grid);
+  res.innerHTML+=`<div class="tip" style="margin-top:14px">💡 <strong>Tips:</strong> Google → <code>"Nama Lengkap" "Kota"</code> paling spesifik. Pddikti untuk lacak alumni Indonesia. Kompas/Detik untuk public figure.</div>`;
+}
+
+/* ══════════════════════════════════════
+   IP LOOKUP
+══════════════════════════════════════ */
+function getFlagEmoji(cc){if(!cc)return'🌐';return cc.toUpperCase().split('').map(c=>String.fromCodePoint(c.charCodeAt(0)+127397)).join('')}
+
+async function lookupIP(custom){
+  const raw=custom||$('ipIn').value.trim();
+  if(!raw){sm('Ups','Masukkan IP atau domain!');return}
+  saveHistory('ip',raw);
+  const res=$('r-ip');res.innerHTML='<div class="tip">⏳ Lookup berjalan...</div>';
+  try{
+    const r=await fetch(`https://ip-api.com/json/${enc(raw)}?fields=status,message,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,isp,org,as,asname,mobile,proxy,hosting,query`);
+    const d=await r.json();
+    if(d.status!=='success'){res.innerHTML=`<div class="err-box">❌ ${d.message||'IP tidak valid'}</div>`;return}
+
+    res.innerHTML='';
+    res.innerHTML+=chipsHtml([['ip',d.query],['negara',d.countryCode+' '+d.country],['kota',d.city],['isp',d.isp]]);
+    res.innerHTML+=`<div class="pf-card">
+      <div style="font-size:46px">${getFlagEmoji(d.countryCode)}</div>
+      <div>
+        <div class="pf-name">${d.city}, ${d.regionName}</div>
+        <div class="pf-desc">${d.country} &bull; ${d.timezone} &bull; ZIP: ${d.zip||'-'} &bull; Lat: ${d.lat}, Lon: ${d.lon}</div>
+        <div class="pf-badges">
+          ${d.proxy||d.hosting?'<span class="badge br">⚠️ Proxy/VPN/Hosting</span>':'<span class="badge bg">✓ Bukan Proxy</span>'}
+          ${d.mobile?'<span class="badge by">📱 Mobile</span>':''}
+          <span class="badge bb">🌐 ${d.isp}</span>
+          <span class="badge bc">${d.as||'-'}</span>
+        </div>
+      </div>
+    </div>`;
+
+    const fields=[['IP',d.query],['Negara',d.country+' ('+d.countryCode+')'],['Region',d.regionName],['Kota',d.city],['ZIP',d.zip||'-'],['Latitude',d.lat],['Longitude',d.lon],['Timezone',d.timezone],['ISP',d.isp],['Org',d.org],['AS',d.as],['AS Name',d.asname],['Mobile',d.mobile?'Ya':'Tidak'],['Proxy/VPN',d.proxy?'⚠️ Ya':'Tidak'],['Hosting/DC',d.hosting?'⚠️ Ya':'Tidak']];
+    res.innerHTML+=`<div class="ip-grid">${fields.map(([k,v])=>`<div class="ip-f"><div class="ip-k">${k}</div><div class="ip-v">${v}</div></div>`).join('')}</div>`;
+    res.innerHTML+=`<div class="map-wrap"><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${d.lon-.05},${d.lat-.05},${d.lon+.05},${d.lat+.05}&layer=mapnik&marker=${d.lat},${d.lon}" allowfullscreen></iframe></div>`;
+
+    // DNS lookup section
+    await dnsLookup(d.query,res);
+
+    // Extra tools
+    res.innerHTML+=`<div class="shd" style="margin-top:18px"><div class="shd-l"><div class="sdot" style="background:var(--ye)"></div>More IP Tools</div></div>`;
+    const tools=[
+      {i:'🔍',n:'Shodan',s:'Devices & vulnerabilities',u:`https://www.shodan.io/host/${d.query}`},
+      {i:'🌐',n:'AbuseIPDB',s:'Abuse reports',u:`https://www.abuseipdb.com/check/${d.query}`},
+      {i:'🦠',n:'VirusTotal',s:'Malicious activity',u:`https://www.virustotal.com/gui/ip-address/${d.query}`},
+      {i:'📍',n:'IPVoid',s:'Blacklist check',u:`https://www.ipvoid.com/ip-blacklist-check/?ip=${d.query}`},
+      {i:'🌍',n:'Censys',s:'Internet-wide scanner',u:`https://search.censys.io/hosts/${d.query}`},
+      {i:'📡',n:'BGP.he.net',s:'Routing & ASN info',u:`https://bgp.he.net/ip/${d.query}`},
+      {i:'📊',n:'IPinfo',s:'Full IP intelligence',u:`https://ipinfo.io/${d.query}`},
+      {i:'📡',n:'MXToolbox',s:'Blacklist + WHOIS',u:`https://mxtoolbox.com/SuperTool.aspx?action=blacklist%3a${d.query}`},
+    ];
+    const tg=document.createElement('div');tg.className='domain-links';
+    for(const t of tools){const a=document.createElement('a');a.className='dl';a.href=t.u;a.target='_blank';a.rel='noopener';a.innerHTML=`<div class="dl-ic">${t.i}</div><div><div class="dl-name">${t.n}</div><div class="dl-sub">${t.s}</div></div>`;tg.appendChild(a);}
+    res.appendChild(tg);
+  }catch(ex){res.innerHTML=`<div class="err-box">❌ Error: ${ex.message}</div>`}
+}
+
+async function myIP(){
+  try{const r=await fetch('https://api.ipify.org?format=json');const d=await r.json();$('ipIn').value=d.ip;lookupIP(d.ip);}
+  catch(){sm('Error','Gagal ambil IP kamu.')}
+}
+
+/* ══════════════════════════════════════
+   DNS LOOKUP (DoH via Cloudflare)
+══════════════════════════════════════ */
+async function dnsLookup(domain,container){
+  const types=['A','AAAA','MX','TXT','NS','CNAME'];
+  const section=document.createElement('div');section.className='dns-section';
+  section.innerHTML=`<div class="shd"><div class="shd-l"><div class="sdot" style="background:var(--gn)"></div>DNS Records (Live)</div></div>`;
+
+  for(const type of types){
+    try{
+      const r=await fetch(`https://cloudflare-dns.com/dns-query?name=${enc(domain)}&type=${type}`,{headers:{Accept:'application/dns-json'}});
+      if(!r.ok)continue;
+      const d=await r.json();
+      if(!d.Answer||!d.Answer.length)continue;
+      const block=document.createElement('div');block.className='dns-type';
+      block.innerHTML=`<div class="dns-type-label">${type} Records</div>`;
+      for(const rec of d.Answer){
+        const row=document.createElement('div');row.className='dns-record';
+        row.textContent=`${rec.name} → ${rec.data} (TTL: ${rec.TTL}s)`;
+        block.appendChild(row);
+      }
+      section.appendChild(block);
+    }catch(_){}
+  }
+  container.appendChild(section);
+}
+
+/* ══════════════════════════════════════
+   IMAGE REVERSE SEARCH + EXIF
+══════════════════════════════════════ */
+let curImgUrl='';
+function dov(e){e.preventDefault();$('dropZ').classList.add('dv')}
+function dlv(){$('dropZ').classList.remove('dv')}
+function ddf(e){e.preventDefault();dlv();const f=e.dataTransfer.files[0];if(f){const inp=$('imgFile');const dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;handleImg({target:inp})}}
+
+function handleImg(ev){
+  const file=ev.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async(e)=>{
+    const preview=$('imgPreview');preview.src=e.target.result;preview.style.display='block';
+    curImgUrl=e.target.result;
+    const res=$('r-image');res.innerHTML='';
+
+    // EXIF extraction
+    try{
+      if(typeof ExifReader!=='undefined'){
+        const buf=await file.arrayBuffer();
+        const tags=ExifReader.load(buf);
+        const exifFields=[];
+        const useful={
+          'DateTimeOriginal':'📅 Tanggal Foto','Make':'📷 Merk Kamera','Model':'📷 Model','Software':'💻 Software',
+          'ImageWidth':'📐 Lebar','ImageLength':'📐 Tinggi','GPSLatitude':'📍 Latitude GPS','GPSLongitude':'📍 Longitude GPS',
+          'GPSAltitude':'📍 Altitude','ExposureTime':'⚡ Exposure','FNumber':'🔍 Aperture','ISO':'📊 ISO',
+          'Flash':'💡 Flash','Orientation':'🔄 Orientasi',
+        };
+        for(const[key,label] of Object.entries(useful)){
+          if(tags[key]){exifFields.push([label,tags[key].description||tags[key].value]);}
+        }
+        if(exifFields.length){
+          res.innerHTML+=`<div class="shd"><div class="shd-l"><div class="sdot" style="background:var(--pk)"></div>📋 EXIF Metadata (${exifFields.length} field)</div></div>`;
+          res.innerHTML+=`<div class="exif-grid">${exifFields.map(([k,v])=>`<div class="exif-f"><div class="exif-k">${k}</div><div class="exif-v">${v}</div></div>`).join('')}</div>`;
+
+          // GPS Map
+          const lat=tags['GPSLatitude']?.description;
+          const lon=tags['GPSLongitude']?.description;
+          if(lat&&lon){
+            res.innerHTML+=`<div class="ok-box">📍 GPS ditemukan! Koordinat: ${lat}, ${lon}</div>`;
+            res.innerHTML+=`<div class="map-wrap"><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(lon)-.01},${parseFloat(lat)-.01},${parseFloat(lon)+.01},${parseFloat(lat)+.01}&layer=mapnik&marker=${lat},${lon}" allowfullscreen></iframe></div>`;
+          }
+        } else {
+          res.innerHTML+=`<div class="tip">ℹ️ Tidak ada EXIF metadata (kemungkinan sudah dihapus atau screenshot).</div>`;
+        }
+      }
+    }catch(ex){res.innerHTML+=`<div class="tip">⚠️ EXIF extraction error: ${ex.message}</div>`}
+
+    res.innerHTML+=`<div class="tip" style="margin-top:14px">📤 File lokal. Upload ke <a href="https://imgbb.com" target="_blank">imgBB.com</a> untuk dapatkan URL, lalu cari di search engine di bawah.</div>`;
+    renderImgEngines('',true,res);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function searchImg(){
+  const url=$('imgUrl').value.trim();
+  if(!url||url.startsWith('[')){sm('Ups','Masukkan URL gambar atau upload file!');return}
+  curImgUrl=url;
+  const res=$('r-image');res.innerHTML='';
+  renderImgEngines(url,false,res);
+}
+
+function renderImgEngines(url,isLocal,res){
+  res.innerHTML+=(res.innerHTML?'':'')+'<div class="shd"><div class="shd-l"><div class="sdot" style="background:var(--pk)"></div>Reverse Image Search Engines</div></div>';
+  const engines=isLocal?[
+    {i:'🔍',n:'Google Images',s:'Upload langsung — paling akurat',u:'https://images.google.com/',c:'#EA4335'},
+    {i:'🟡',n:'Yandex Images',s:'Terbaik untuk wajah',u:'https://yandex.com/images/',c:'#FF0000'},
+    {i:'👁️',n:'TinEye',s:'Temukan sumber asli',u:'https://tineye.com/',c:'#4CAF50'},
+    {i:'🔎',n:'Bing Visual',s:'AI visual search',u:'https://www.bing.com/visualsearch',c:'#00809D'},
+    {i:'😶',n:'FaceCheck.ID',s:'Face recognition gratis',u:'https://facecheck.id/',c:'#7C3AED'},
+    {i:'👤',n:'PimEyes',s:'Face search engine',u:'https://pimeyes.com/',c:'#F59E0B'},
+    {i:'🎨',n:'SauceNAO',s:'Anime/artwork search',u:'https://saucenao.com/',c:'#E91E63'},
+    {i:'🖼️',n:'ImgOps',s:'Image operations toolkit',u:'https://imgops.com/',c:'#3F51B5'},
+  ]:[
+    {i:'🔍',n:'Google Lens',s:'Paling akurat & luas',u:`https://lens.google.com/uploadbyurl?url=${enc(url)}`,c:'#EA4335'},
+    {i:'🟡',n:'Yandex Images',s:'Terbaik untuk wajah Asia',u:`https://yandex.com/images/search?url=${enc(url)}&rpt=imageview`,c:'#FF0000'},
+    {i:'👁️',n:'TinEye',s:'Temukan sumber asli foto',u:`https://tineye.com/search?url=${enc(url)}`,c:'#4CAF50'},
+    {i:'🔎',n:'Bing Visual',s:'AI visual search Microsoft',u:`https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=${enc(url)}`,c:'#00809D'},
+    {i:'😶',n:'FaceCheck.ID',s:'Face recognition gratis',u:'https://facecheck.id/',c:'#7C3AED'},
+    {i:'👤',n:'PimEyes',s:'Face search engine premium',u:'https://pimeyes.com/',c:'#F59E0B'},
+    {i:'🎨',n:'SauceNAO',s:'Spesialis anime/manga/artwork',u:`https://saucenao.com/search.php?url=${enc(url)}`,c:'#E91E63'},
+    {i:'🖼️',n:'IQDB',s:'Multi-service anime search',u:`https://iqdb.org/?url=${enc(url)}`,c:'#9C27B0'},
+    {i:'📸',n:'ImgOps',s:'Image analysis toolkit',u:`https://imgops.com/${url}`,c:'#3F51B5'},
+    {i:'🌍',n:'Baidu Images',s:'Database China terbesar',u:`https://image.baidu.com/search/detail?image=${enc(url)}`,c:'#2932E1'},
+    {i:'🔬',n:'RevEye',s:'Multi-engine reverse search',u:`https://www.reverseimagesearch.org/?url=${enc(url)}`,c:'#F59E0B'},
+    {i:'📊',n:'Reverse.photos',s:'Face recognition focus',u:`https://reverse.photos/?url=${enc(url)}`,c:'#FF5722'},
+  ];
+  const grid=document.createElement('div');grid.className='img-engines';
+  for(const en of engines){
+    const a=document.createElement('a');a.className='img-eng';a.href=en.u;a.target='_blank';a.rel='noopener';
+    a.style.borderColor=en.c+'44';
+    a.innerHTML=`<div class="ie-ic" style="background:${en.c}22;color:${en.c}">${en.i}</div><div><div class="ie-name">${en.n}</div><div class="ie-sub">${en.s}</div></div>`;
+    grid.appendChild(a);
+  }
+  res.appendChild(grid);
+  if(!isLocal)res.innerHTML+=`<div class="tip" style="margin-top:12px">💡 Yandex terbaik untuk wajah. Google Lens untuk objek. TinEye untuk sumber asli. FaceCheck.ID & PimEyes untuk identifikasi wajah.</div>`;
+}
+
+/* ══════════════════════════════════════
+   DOMAIN SCAN
+══════════════════════════════════════ */
+async function scanDomain(){
+  const d=$('domIn').value.trim().replace(/^https?:\/\//,'').replace(/\/.*$/,'');
+  if(!d){sm('Ups','Masukkan domain!');return}
+  saveHistory('domain',d);
+  const res=$('r-domain');res.innerHTML='<div class="tip">⏳ Mengambil data domain...</div>';
+
+  let ipData=null;
+  try{
+    const r=await fetch(`https://ip-api.com/json/${d}?fields=status,country,countryCode,regionName,city,isp,org,as,query`);
+    const dd=await r.json();
+    if(dd.status==='success')ipData=dd;
+  }catch(_){}
+
+  res.innerHTML='';
+  if(ipData){
+    res.innerHTML+=chipsHtml([['domain',d],['ip',ipData.query],['negara',ipData.countryCode+' '+ipData.country],['isp',ipData.isp]]);
+    res.innerHTML+=`<div class="pf-card">
+      <div style="font-size:40px">${getFlagEmoji(ipData.countryCode)}</div>
+      <div>
+        <div class="pf-name">${d}</div>
+        <div class="pf-desc">IP: ${ipData.query} · ${ipData.city}, ${ipData.country}</div>
+        <div class="pf-badges"><span class="badge bb">🌐 ${ipData.isp}</span><span class="badge bc">${ipData.as||'-'}</span><span class="badge bg">✓ Domain Aktif</span></div>
+      </div>
+    </div>`;
+  } else {
+    res.innerHTML+=chipsHtml([['domain',d]]);
+  }
+
+  // DNS Live Lookup
+  const dnsEl=document.createElement('div');res.appendChild(dnsEl);
+  await dnsLookup(d,dnsEl);
+
+  // SSL via crt.sh
+  try{
+    const cr=await fetch(`https://crt.sh/?q=${enc(d)}&output=json`);
+    if(cr.ok){
+      const certs=await cr.json();
+      if(certs.length){
+        res.innerHTML+=`<div class="shd" style="margin-top:16px"><div class="shd-l"><div class="sdot" style="background:var(--gn)"></div>SSL/TLS Certificates (crt.sh) — ${Math.min(certs.length,5)} terbaru</div></div>`;
+        const certGrid=document.createElement('div');certGrid.className='ip-grid';
+        certs.slice(0,5).forEach(cert=>{
+          certGrid.innerHTML+=`<div class="ip-f"><div class="ip-k">Issuer</div><div class="ip-v" style="font-size:11px">${cert.issuer_name?.split(',')[0]||'-'}</div><div class="ip-k" style="margin-top:6px">Valid Not Before</div><div class="ip-v" style="font-size:11px">${cert.not_before||'-'}</div></div>`;
+        });
+        res.appendChild(certGrid);
+      }
+    }
+  }catch(_){}
+
+  // Wayback Machine
+  try{
+    const wb=await fetch(`https://archive.org/wayback/available?url=${enc(d)}`);
+    if(wb.ok){
+      const wbd=await wb.json();
+      if(wbd.archived_snapshots?.closest){
+        const snap=wbd.archived_snapshots.closest;
+        res.innerHTML+=`<div class="ok-box">📸 Wayback Machine: snapshot tersedia — <a href="${snap.url}" target="_blank" style="color:var(--cy)">${snap.timestamp?.slice(0,8)||'ada'}</a> (Status: ${snap.status})</div>`;
+      }
+    }
+  }catch(_){}
+
+  // Tools grid
+  res.innerHTML+=`<div class="shd" style="margin-top:16px"><div class="shd-l"><div class="sdot" style="background:var(--gn)"></div>Domain Intel Tools</div></div>`;
+  const tools=[
+    {i:'📋',n:'WHOIS',s:'Pemilik & registrar',u:`https://www.whois.com/whois/${d}`},
+    {i:'🔍',n:'Shodan',s:'Open ports & services',u:`https://www.shodan.io/search?query=${d}`},
+    {i:'🦠',n:'VirusTotal',s:'Domain reputation',u:`https://www.virustotal.com/gui/domain/${d}`},
+    {i:'📸',n:'Wayback Machine',s:'Historical snapshots',u:`https://web.archive.org/web/*/${d}`},
+    {i:'🔐',n:'SSL Labs',s:'SSL analysis',u:`https://www.ssllabs.com/ssltest/analyze.html?d=${d}`},
+    {i:'📊',n:'SecurityHeaders',s:'HTTP headers check',u:`https://securityheaders.com/?q=${d}`},
+    {i:'🔗',n:'crt.sh',s:'Certificate transparency',u:`https://crt.sh/?q=${d}`},
+    {i:'📡',n:'MXToolbox',s:'DNS, MX, blacklists',u:`https://mxtoolbox.com/SuperTool.aspx?action=mx%3a${d}`},
+    {i:'🌍',n:'Censys',s:'Certificate & host scan',u:`https://search.censys.io/certificates?q=${d}`},
+    {i:'🛡️',n:'AbuseIPDB',s:'Abuse reports',u:`https://www.abuseipdb.com/check/${ipData?.query||d}`},
+    {i:'🌐',n:'ViewDNS',s:'Reverse IP, DNS history',u:`https://viewdns.info/reverseip/?host=${d}&t=1`},
+    {i:'🔬',n:'URLScan.io',s:'Website analysis',u:`https://urlscan.io/search/#domain:${d}`},
+    {i:'📂',n:'Subfinder',s:'Enumerate subdomains',u:`https://subdomainfinder.c99.nl/?domain=${d}`},
+    {i:'📈',n:'SimilarWeb',s:'Traffic analytics',u:`https://www.similarweb.com/website/${d}`},
+  ];
+  const tg=document.createElement('div');tg.className='domain-links';
+  for(const t of tools){const a=document.createElement('a');a.className='dl';a.href=t.u;a.target='_blank';a.rel='noopener';a.innerHTML=`<div class="dl-ic">${t.i}</div><div><div class="dl-name">${t.n}</div><div class="dl-sub">${t.s}</div></div>`;tg.appendChild(a);}
+  res.appendChild(tg);
+
+  // Dorks
+  res.innerHTML+=`<div class="shd" style="margin-top:16px"><div class="shd-l"><div class="sdot" style="background:var(--or)"></div>Google Dorks</div></div>`;
+  const dorks=[[`site:${d}`,'Semua halaman'],[`site:${d} filetype:pdf`,'File PDF'],[`site:${d} inurl:admin`,'Halaman admin'],[`site:${d} inurl:login`,'Login pages'],['\"@'+d+'\"','Email dari domain'],[`site:${d} -www`,'Subdomains'],[`related:${d}`,'Website terkait'],[`"${d}" password`,'Mention password']];
+  const dg=document.createElement('div');dg.className='domain-links';
+  for(const[q,s] of dorks){const a=document.createElement('a');a.className='dl';a.href=`https://www.google.com/search?q=${enc(q)}`;a.target='_blank';a.rel='noopener';a.innerHTML=`<div class="dl-ic">🔍</div><div><div class="dl-name" style="font-family:'JetBrains Mono',monospace;font-size:11px">${q}</div><div class="dl-sub">${s}</div></div>`;dg.appendChild(a);}
+  res.appendChild(dg);
+}
+
+/* ══════════════════════════════════════
+   BREACH CHECK
+══════════════════════════════════════ */
+async function checkBreach(){
+  const email=$('breachEmail').value.trim().toLowerCase();
+  if(!email||!email.includes('@')){sm('Ups','Masukkan email valid!');return}
+  saveHistory('breach',email);
+  const res=$('r-breach');res.innerHTML='<div class="tip">⏳ Checking breach databases...</div>';
+
+  // emailrep.io
+  let erData=null;
+  try{
+    const r=await fetch(`https://emailrep.io/${enc(email)}`,{headers:{Accept:'application/json'}});
+    if(r.ok)erData=await r.json();
+  }catch(_){}
+
+  res.innerHTML='';
+  res.innerHTML+=chipsHtml([['email',email],['md5',md5(email)]]);
+
+  if(erData){
+    const det=erData.details||{};
+    const breached=det.credentials_leaked||det.data_breach;
+    res.innerHTML+=`<div class="breach-card ${erData.suspicious?'danger':breached?'warn':'safe'}" style="margin-bottom:14px">
+      <div class="bc-head"><div class="bc-icon">${erData.suspicious?'🚨':breached?'⚠️':'✅'}</div>
+        <div><div class="bc-name">EmailRep.io Report</div><div class="bc-sub">Reputasi: ${erData.reputation||'?'} · References: ${erData.references||0}</div></div>
+      </div>
+      <div class="bc-tags">
+        ${erData.suspicious?'<span class="badge br">⚠️ Suspicious</span>':'<span class="badge bg">✓ Tidak Suspicious</span>'}
+        ${det.blacklisted?'<span class="badge br">🚫 Blacklisted</span>':''}
+        ${det.malicious_activity?'<span class="badge br">🦠 Malicious Activity Detected</span>':''}
+        ${det.credentials_leaked?'<span class="badge br">💀 Credentials Bocor!</span>':'<span class="badge bg">🔒 Credentials OK</span>'}
+        ${det.data_breach?'<span class="badge br">💥 Data Breach!</span>':''}
+        ${det.spam?'<span class="badge by">📨 Spam Associated</span>':''}
+        ${det.disposable?'<span class="badge by">🗑️ Disposable Email</span>':''}
+        ${det.free_provider?'<span class="badge bc">📧 Free Provider</span>':''}
+        ${det.first_seen?`<span class="badge bc">📅 First seen: ${det.first_seen}</span>`:''}
+        ${det.last_seen?`<span class="badge bc">🕐 Last seen: ${det.last_seen}</span>`:''}
+      </div>
+    </div>`;
+  } else {
+    res.innerHTML+=`<div class="tip">⚠️ EmailRep tidak merespons. Coba layanan manual di bawah.</div>`;
+  }
+
+  // Breach search links
+  res.innerHTML+=`<div class="shd"><div class="shd-l"><div class="sdot" style="background:var(--rd)"></div>Breach Database Lookup</div></div>`;
+  const bsites=[
+    {i:'💀',n:'HaveIBeenPwned',s:'Database breach terbesar (butuh key)',u:`https://haveibeenpwned.com/account/${enc(email)}`,c:'var(--rd)'},
+    {i:'📂',n:'BreachDirectory',s:'Gratis tanpa daftar',u:`https://breachdirectory.org/`,c:'var(--or)'},
+    {i:'💾',n:'DeHashed',s:'Advanced breach search',u:`https://dehashed.com/search?query=${enc(email)}`,c:'var(--pu)'},
+    {i:'🔍',n:'Snusbase',s:'Breach data search engine',u:`https://snusbase.com/`,c:'var(--bl)'},
+    {i:'🌐',n:'IntelX.io',s:'Intelligence X leak search',u:`https://intelx.io/?s=${enc(email)}`,c:'var(--cy)'},
+    {i:'🕵️',n:'LeakCheck.io',s:'Email leak checker',u:`https://leakcheck.io/`,c:'var(--ye)'},
+    {i:'📋',n:'Psbdmp',s:'Paste sites search',u:`https://psbdmp.ws/api/search/${enc(email)}`,c:'var(--gn)'},
+    {i:'🔎',n:'Spycloud',s:'ATO & breach data',u:`https://spycloud.com/`,c:'var(--or)'},
+  ];
+  const bg=document.createElement('div');bg.className='breach-grid';
+  for(const s of bsites){
+    const card=document.createElement('div');card.className='breach-card';card.style.borderColor=s.c+'44';
+    card.innerHTML=`<div class="bc-head"><div class="bc-icon" style="font-size:22px">${s.i}</div><div><div class="bc-name">${s.n}</div><div class="bc-sub">${s.s}</div></div><a href="${s.u}" target="_blank" rel="noopener" style="margin-left:auto;color:var(--t3);font-size:18px;text-decoration:none">→</a></div>`;
+    bg.appendChild(card);
+  }
+  res.appendChild(bg);
+  res.innerHTML+=`<div class="tip" style="margin-top:14px">💡 BreachDirectory & DeHashed paling lengkap. HIBP butuh daftar sendiri di situs mereka untuk get API key. Semua data dari database public breach.</div>`;
+}
+
+async function checkPassword(){
+  const pwd=$('pwdIn').value;
+  if(!pwd){sm('Ups','Masukkan password!');return}
+  const res=$('r-breach');
+
+  // Clear only password section
+  const existing=res.querySelector('#pwdResult');
+  if(existing)existing.remove();
+
+  const pwdSection=document.createElement('div');pwdSection.id='pwdResult';pwdSection.innerHTML='<div class="tip">⏳ Checking password (k-anonymity — aman, hanya 5 karakter pertama hash yang dikirim)...</div>';
+  res.insertBefore(pwdSection,$('breachEmail').parentElement?.nextSibling||res.firstChild);
+
+  try{
+    const hash=await sha1(pwd);
+    const prefix=hash.slice(0,5);
+    const suffix=hash.slice(5);
+
+    const r=await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+    if(!r.ok){pwdSection.innerHTML='<div class="err-box">❌ HIBP API error</div>';return}
+
+    const text=await r.text();
+    const found=text.split('\n').find(line=>line.startsWith(suffix.toUpperCase()));
+
+    if(found){
+      const count=parseInt(found.split(':')[1]);
+      pwdSection.innerHTML=`<div class="breach-card danger" style="margin-bottom:14px">
+        <div class="bc-head"><div class="bc-icon">🚨</div><div><div class="bc-name">Password DITEMUKAN di Breach Database!</div><div class="bc-sub">Muncul <strong>${count.toLocaleString()}</strong> kali dalam database breach yang diketahui.</div></div></div>
+        <div class="bc-tags"><span class="badge br">💀 Jangan gunakan password ini</span><span class="badge by">🔄 Ganti sekarang!</span></div>
+      </div>`;
+    } else {
+      pwdSection.innerHTML=`<div class="breach-card safe" style="margin-bottom:14px">
+        <div class="bc-head"><div class="bc-icon">✅</div><div><div class="bc-name">Password Aman</div><div class="bc-sub">Tidak ditemukan dalam database breach yang diketahui (HIBP k-anonymity check).</div></div></div>
+        <div class="bc-tags"><span class="badge bg">🔒 Tidak bocor</span></div>
+      </div>`;
+    }
+  }catch(ex){
+    pwdSection.innerHTML=`<div class="err-box">❌ Error: ${ex.message}</div>`;
+  }
+}
+
+/* ══════════════════════════════════════
+   HASH TOOLS
+══════════════════════════════════════ */
+async function runHash(){
+  const input=$('hashIn').value;
+  const mode=$('encMode').value;
+  if(!input){sm('Ups','Masukkan input!');return}
+  const res=$('r-hash');res.innerHTML='';
+
+  if(mode==='hash'){
+    res.innerHTML+=`<div class="shd"><div class="shd-l"><div class="sdot" style="background:var(--ye)"></div>Hash Results</div><div class="shd-r"><button class="btn-sm" onclick="copyText(document.querySelector('.hash-val').textContent)">Copy MD5</button></div></div>`;
+    const md5h=md5(input);
+    const sha1h=await sha1(input);
+    const sha256h=await sha256(input);
+    const sha512h=await sha512(input);
+    res.innerHTML+=`<div class="hash-grid">
+      <div class="hash-result"><div class="hash-type">MD5</div><div class="hash-val" onclick="copyText(this.textContent)">${md5h}</div></div>
+      <div class="hash-result"><div class="hash-type">SHA-1</div><div class="hash-val" onclick="copyText(this.textContent)">${sha1h}</div></div>
+      <div class="hash-result"><div class="hash-type">SHA-256</div><div class="hash-val" onclick="copyText(this.textContent)">${sha256h}</div></div>
+      <div class="hash-result"><div class="hash-type">SHA-512</div><div class="hash-val" onclick="copyText(this.textContent)">${sha512h}</div></div>
+    </div>`;
+    // Hash lookup links
+    res.innerHTML+=`<div class="shd" style="margin-top:16px"><div class="shd-l"><div class="sdot" style="background:var(--or)"></div>Hash Lookup (kalau MD5/SHA1)</div></div>`;
+    const hl=[
+      {i:'🔍',n:'CrackStation',s:'Free hash lookup',u:`https://crackstation.net/`,c:'var(--bl)'},
+      {i:'🔓',n:'HashKiller',s:'UK hash cracking DB',u:`https://hashkiller.io/listmanager`,c:'var(--or)'},
+      {i:'📂',n:'MD5Decrypt',s:'MD5 reverse lookup',u:`https://md5decrypt.net/?lang=en#answer`,c:'var(--gn)'},
+      {i:'🌐',n:'Hashes.com',s:'Multi-hash database',u:`https://hashes.com/en/decrypt/hash`,c:'var(--pu)'},
+      {i:'🔬',n:'OnlineHashCrack',s:'Cloud hash cracking',u:`https://www.onlinehashcrack.com/`,c:'var(--cy)'},
+    ];
+    const hg=document.createElement('div');hg.className='domain-links';
+    for(const h of hl){const a=document.createElement('a');a.className='dl';a.href=h.u;a.target='_blank';a.rel='noopener';a.innerHTML=`<div class="dl-ic">${h.i}</div><div><div class="dl-name">${h.n}</div><div class="dl-sub">${h.s}</div></div>`;hg.appendChild(a);}
+    res.appendChild(hg);
+  }
+
+  else if(mode==='identify'){
+    const patterns=[
+      [/^[a-f0-9]{32}$/i,'MD5'],
+      [/^[a-f0-9]{40}$/i,'SHA-1'],
+      [/^[a-f0-9]{64}$/i,'SHA-256'],
+      [/^[a-f0-9]{128}$/i,'SHA-512'],
+      [/^\$2[ayb]\$.{56}$/,'bcrypt'],
+      [/^\$1\$.{26}$/,'MD5Crypt'],
+      [/^\$6\$.{86}$/,'SHA-512Crypt'],
+      [/^[A-Za-z0-9+/]{24}=?=?$/,'Base64 (kemungkinan)'],
+      [/^[A-F0-9]{32}$/,'MD5 (uppercase)'],
+    ];
+    let identified='Tidak dikenali';
+    for(const[rx,name] of patterns)if(rx.test(input.trim())){identified=name;break;}
+    res.innerHTML+=`<div class="ok-box">🔍 Hash Type Detected: <strong>${identified}</strong> (panjang: ${input.trim().length} karakter)</div>`;
+    res.innerHTML+=chipsHtml([['input',input.length>40?input.slice(0,40)+'…':input],['length',input.trim().length],['detected',identified]]);
+  }
+
+  else if(mode==='b64e'){
+    const out=btoa(unescape(encodeURIComponent(input)));
+    res.innerHTML+=`<div class="hash-result"><div class="hash-type">Base64 Encoded</div><div class="hash-val" onclick="copyText(this.textContent)">${out}</div></div>`;
+  }
+
+  else if(mode==='b64d'){
+    try{const out=decodeURIComponent(escape(atob(input)));res.innerHTML+=`<div class="hash-result"><div class="hash-type">Base64 Decoded</div><div class="hash-val" onclick="copyText(this.textContent)">${out}</div></div>`;}
+    catch(ex){res.innerHTML+=`<div class="err-box">❌ Bukan Base64 valid: ${ex.message}</div>`}
+  }
+
+  else if(mode==='urle'){
+    res.innerHTML+=`<div class="hash-result"><div class="hash-type">URL Encoded</div><div class="hash-val" onclick="copyText(this.textContent)">${encodeURIComponent(input)}</div></div>`;
+  }
+
+  else if(mode==='urld'){
+    try{res.innerHTML+=`<div class="hash-result"><div class="hash-type">URL Decoded</div><div class="hash-val" onclick="copyText(this.textContent)">${decodeURIComponent(input)}</div></div>`;}
+    catch(ex){res.innerHTML+=`<div class="err-box">❌ URL decode error: ${ex.message}</div>`}
+  }
+
+  else if(mode==='pwstrength'){
+    let score=0,feedback=[];
+    if(input.length>=8)score+=1;else feedback.push('Minimal 8 karakter');
+    if(input.length>=12)score+=1;
+    if(input.length>=16)score+=1;
+    if(/[a-z]/.test(input))score+=1;else feedback.push('Tambah huruf kecil');
+    if(/[A-Z]/.test(input))score+=1;else feedback.push('Tambah huruf besar');
+    if(/[0-9]/.test(input))score+=1;else feedback.push('Tambah angka');
+    if(/[^a-zA-Z0-9]/.test(input))score+=2;else feedback.push('Tambah karakter spesial (!@#$)');
+    const entropy=Math.floor(input.length*Math.log2(
+      (/[a-z]/.test(input)?26:0)+(/[A-Z]/.test(input)?26:0)+(/[0-9]/.test(input)?10:0)+(/[^a-zA-Z0-9]/.test(input)?32:0)||1
+    ));
+    const labels=['Sangat Lemah','Lemah','Sedang','Kuat','Sangat Kuat'];
+    const colors=['var(--rd)','var(--or)','var(--ye)','var(--gn)','var(--cy)'];
+    const lvl=Math.min(Math.floor(score/2),4);
+    res.innerHTML+=`<div class="risk-meter">
+      <div class="risk-title">🔑 Password Strength</div>
+      <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:${(score/8)*100}%;background:${colors[lvl]}"></div></div>
+      <div class="risk-info"><span class="risk-score-num" style="color:${colors[lvl]}">${labels[lvl]}</span><span style="color:var(--t2);font-size:12px;align-self:center">Entropy: ~${entropy} bits | Score: ${score}/8</span></div>
+    </div>`;
+    if(feedback.length)res.innerHTML+=`<div class="tip">💡 Saran: ${feedback.join(' · ')}</div>`;
+  }
+}
+
+/* ══════════════════════════════════════
+   EXPORT / COPY
+══════════════════════════════════════ */
+function copyRep(resId,uname){
+  let txt=`OSINT Report — ${new Date().toLocaleString()}\nTarget: ${uname}\n\n`;
+  for(const[cat,plats] of Object.entries(PLATS)){
+    txt+=`\n${cat}\n${'-'.repeat(40)}\n`;
+    for(const p of plats){
+      const sid=p.n.replace(/\W/g,'_');
+      const card=$(`pc-${resId}-${sid}`);
+      let status='MANUAL';
+      if(card?.classList.contains('found'))status='FOUND';
+      else if(card?.classList.contains('nf'))status='NOT FOUND';
+      txt+=`[${status.padEnd(9)}] ${p.n.padEnd(16)} ${p.u.replace(/{u}/g,uname)}\n`;
+    }
+  }
+  copyText(txt);
+}
+
+function exportJSON(resId,uname){
+  const data={target:uname,timestamp:new Date().toISOString(),platforms:{}};
+  for(const[cat,plats] of Object.entries(PLATS)){
+    data.platforms[cat]=plats.map(p=>{
+      const sid=p.n.replace(/\W/g,'_');
+      const card=$(`pc-${resId}-${sid}`);
+      let status='manual';
+      if(card?.classList.contains('found'))status='found';
+      else if(card?.classList.contains('nf'))status='not_found';
+      return{platform:p.n,url:p.u.replace(/{u}/g,uname),status};
+    });
+  }
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`osint_${uname}_${Date.now()}.json`;a.click();
+}
+</script>
+</body>
+</html>
